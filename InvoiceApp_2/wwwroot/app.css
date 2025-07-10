@@ -1,0 +1,16 @@
+﻿.mud-typography-h4 {
+    padding-top: 2rem;
+    padding-bottom: 1rem;
+}
+
+.custom-main-padding {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-bottom: 2rem;
+}
+
+.custom-mudpaper {
+    padding: 2rem;
+    background-color: #fffdf5;
+    border-radius: 8px;
+}

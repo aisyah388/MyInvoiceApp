@@ -1,0 +1,182 @@
+﻿@page "/invoice/edit/{Id:guid}"
+@using InvoiceApp_2.ViewModel
+@inject InvoiceService invoiceService
+@inject ClientService clientService
+@inject ISnackbar Snackbar
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h4">Edit Invoice</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudCard Style="padding-bottom: 4.1rem;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Invoice Details</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Invoice No</MudText></MudItem>
+                    <MudItem xs="8"><MudTextField @bind-Value="@invoice.Number" Variant="Variant.Outlined" /></MudItem>
+
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Payment Status</MudText></MudItem>
+                    <MudItem xs="8"><MudTextField @bind-Value="@invoice.Status" Variant="Variant.Outlined" /></MudItem>
+
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Issue Date</MudText></MudItem>
+                    <MudItem xs="8"><MudDatePicker @bind-Value="@invoice.Issue_Date" Variant="Variant.Outlined" /></MudItem>
+
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Due Date</MudText></MudItem>
+                    <MudItem xs="8"><MudDatePicker @bind-Value="@invoice.Due_Date" Variant="Variant.Outlined" /></MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12" sm="6">
+        <MudCard Style="padding-bottom: 1rem;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Client Details</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Name</MudText></MudItem>
+                    <MudItem xs="8"><MudTextField @bind-Value="@client.Company_Name" Variant="Variant.Outlined" Disabled="true" /></MudItem>
+
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Email</MudText></MudItem>
+                    <MudItem xs="8"><MudTextField @bind-Value="@client.Email" Variant="Variant.Outlined" Disabled="true" /></MudItem>
+
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Phone</MudText></MudItem>
+                    <MudItem xs="8"><MudTextField @bind-Value="@client.Phone" Variant="Variant.Outlined" Disabled="true" /></MudItem>
+
+                    <MudItem xs="4"><MudText Typo="Typo.body1">Address</MudText></MudItem>
+                    <MudItem xs="8"><MudTextField @bind-Value="@client.Address" Variant="Variant.Outlined" Lines="3" Disabled="true" /></MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudCard Style="padding-bottom: 1rem;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudGrid>
+                        <MudItem xs="6"><MudText Typo="Typo.h6">Service Details</MudText></MudItem>
+                        <MudItem xs="6" Class="d-flex justify-end">
+                            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddNewInvoiceItem">
+                                Add Item
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudTable Items="@invoice.Items" Hover="true">
+                    <HeaderContent>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Quantity</MudTh>
+                        <MudTh>Unit Price</MudTh>
+                        <MudTh>Total</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd><MudTextField @bind-Value="@context.Description" Immediate="true" Variant="Variant.Outlined" /></MudTd>
+                        <MudTd><MudNumericField T="int" @bind-Value="@context.Quantity" Immediate="true" Variant="Variant.Outlined" HideSpinButtons="true" /></MudTd>
+                        <MudTd><MudNumericField T="decimal" @bind-Value="@context.Unit_Price" Immediate="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentText="RM" HideSpinButtons="true" /></MudTd>
+                        <MudTd>@(context.Quantity * context.Unit_Price).ToString("C")</MudTd>
+                        <MudTd><MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveInvoiceItem(context)" /></MudTd>
+                    </RowTemplate>
+                    <FooterContent>
+                        <MudTd ColSpan="3">
+                            <MudTextField Label="Note" Variant="Variant.Outlined" FullWidth="true" @bind-Value="note" Lines="3" />
+                        </MudTd>
+                        <MudTd>
+                            <MudText Typo="Typo.body2">Subtotal</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax %</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Delivery</MudText>
+                            <MudText Typo="Typo.h6" Class="mt-2">Grand Total</MudText>
+                        </MudTd>
+                        <MudTd>
+                            <MudText Typo="Typo.body2">@subTotal.ToString("C")</MudText>
+                            <MudTextField Class="mt-2" @bind-Value="taxRate" Variant="Variant.Outlined" Style="width: 90px;" Adornment="Adornment.End" AdornmentText="%" Immediate="true" />
+                            <MudText Typo="Typo.body2" Class="mt-2">@tax.ToString("C")</MudText>
+                            <MudNumericField Class="mt-2" T="decimal" @bind-Value="delivery" Variant="Variant.Outlined" Style="width: 90px;" Adornment="Adornment.Start" AdornmentText="RM" HideSpinButtons="true" />
+                            <MudText Typo="Typo.h6" Class="mt-2">@grandTotal.ToString("C")</MudText>
+                        </MudTd>
+                    </FooterContent>
+                </MudTable>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="UpdateInvoice">
+                    Save Changes
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private Invoice invoice = new();
+    private ClientVM client = new();
+    private string note = string.Empty;
+    private decimal taxRate = 0;
+    private decimal delivery = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        invoice = await invoiceService.GetInvoiceById(Id);
+
+        if (invoice is null)
+        {
+            Snackbar.Add("Invoice not found.", Severity.Error);
+            NavigationManager.NavigateTo("/invoice/list");
+            return;
+        }
+
+        if (invoice.Client_Id != Guid.Empty)
+        {
+            client = await clientService.GetClientById(invoice.Client_Id);
+        }
+
+        if (invoice.Items == null || invoice.Items.Count == 0)
+        {
+            invoice.Items = new List<Invoice_Item>
+        {
+            new Invoice_Item { Quantity = 1, Unit_Price = 0 }
+        };
+        }
+    }
+
+    private void AddNewInvoiceItem()
+    {
+        invoice.Items.Add(new Invoice_Item { Quantity = 1, Unit_Price = 0 });
+    }
+
+    private void RemoveInvoiceItem(Invoice_Item item)
+    {
+        invoice.Items.Remove(item);
+    }
+
+    private async Task UpdateInvoice()
+    {
+        try
+        {
+            await invoiceService.SaveInvoice(invoice);
+            Snackbar.Add("Invoice updated successfully.", Severity.Success);
+            NavigationManager.NavigateTo("/invoice/list");
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private decimal subTotal => invoice.Items.Sum(i => i.Quantity * i.Unit_Price);
+    private decimal tax => subTotal * (taxRate / 100);
+    private decimal grandTotal => subTotal + tax + delivery;
+}

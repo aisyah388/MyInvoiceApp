@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35919.96
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyInvoiceApp", "InvoiceApp_2\MyInvoiceApp.csproj", "{525ECB91-C426-4D42-A302-AD500253034B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyInvoiceApp_API", "InvoiceApp_2_API\MyInvoiceApp_API.csproj", "{301C031E-CC12-4701-983F-3815A8BA275F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{525ECB91-C426-4D42-A302-AD500253034B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{525ECB91-C426-4D42-A302-AD500253034B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{525ECB91-C426-4D42-A302-AD500253034B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{525ECB91-C426-4D42-A302-AD500253034B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{301C031E-CC12-4701-983F-3815A8BA275F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{301C031E-CC12-4701-983F-3815A8BA275F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{301C031E-CC12-4701-983F-3815A8BA275F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{301C031E-CC12-4701-983F-3815A8BA275F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0D7292D8-D58C-4B73-A292-819AD128B8B1}
+	EndGlobalSection
+EndGlobal

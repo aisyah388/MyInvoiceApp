@@ -1,0 +1,99 @@
+﻿@page "/"
+@page "/invoice/list"
+@inject InvoiceService invoiceService
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Invoice List</MudText>
+
+<MudTable Items="@invoicesList" Hover="true" Filterable="true" Sortable="true" Elevation="1" Bordered="true">
+    <ToolBarContent>
+        <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddNewInvoice">
+            Add New Invoice
+        </MudButton>
+        <MudSpacer />
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh>No.</MudTh>
+        <MudTh>Issue Date</MudTh>
+        <MudTh>Client Name</MudTh>
+        <MudTh>Due Date</MudTh>
+        <MudTh>Total (RM)</MudTh>
+        <MudTh>Status</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+
+    <RowTemplate Context="invoice">
+        <MudTd>@invoice.Number</MudTd>
+        <MudTd>@invoice.Issue_Date?.ToString("yyyy-MM-dd")</MudTd>
+        <MudTd>@invoice.Client?.Company_Name</MudTd>
+        <MudTd>@invoice.Due_Date?.ToString("yyyy-MM-dd")</MudTd>
+        <MudTd>@invoice.Total.ToString("C")</MudTd>
+        <MudTd>
+            @if (invoice.Status != null)
+            {
+                <MudChip T="string" Color="@GetChipColor(invoice.Status?.Name)" Variant="Variant.Filled">
+                    @invoice.Status.Name
+                </MudChip>
+            }
+        </MudTd>
+        <MudTd>
+            <MudStack Row Spacing="1">
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Tertiary">
+                    Print
+                </MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditInvoice(invoice.Id))">
+                    Edit
+                </MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">
+                    Delete
+                </MudButton>
+            </MudStack>
+        </MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private List<Invoice> invoicesList = new();
+    private Invoice? selectedInvoice;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            invoicesList = await invoiceService.GetAllInvoices();
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to retrieve invoice list. Try again later.", Severity.Error);
+        }
+    }
+
+    private void AddNewInvoice()
+    {
+        Navigation.NavigateTo("/invoice/add");
+    }
+
+    private void EditInvoice(Guid id)
+    {
+        Navigation.NavigateTo($"/invoice/edit/{id}");
+    }
+
+    private Color GetChipColor(string status)
+    {
+        return status.ToLower() switch
+        {
+            "paid" => Color.Success,
+            "unpaid" => Color.Error,
+            "pending" => Color.Warning,
+            "overdue" => Color.Secondary,
+            "partial" => Color.Info,
+            _ => Color.Dark
+        };
+    }
+}

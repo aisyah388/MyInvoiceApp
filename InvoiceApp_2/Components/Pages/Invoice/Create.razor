@@ -1,0 +1,260 @@
+﻿@page "/invoice/add"
+@using InvoiceApp_2.ViewModel
+@inject InvoiceService invoiceService
+@inject ClientService clientService
+
+<MudText Typo="Typo.h4">Add New Invoice</MudText>
+<MudGrid>
+    <MudItem xs="12" sm="6" md="6" xl="6">
+        <MudCard Style="padding-bottom: 4.1rem;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Invoice Details</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1" >Invoice No</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudTextField @bind-Value="@invoice.Number" Variant="Variant.Outlined" Disabled="true" />
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Payment Status</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudAutocomplete T="StatusVM"
+                                         Label="Search Status"
+                                         SearchFunc="SearchStatus"
+                                         ToStringFunc="status => status.Name"
+                                         Adornment="Adornment.End"
+                                         AdornmentIcon="@Icons.Material.Filled.Search"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         ValueChanged="OnStatusSelected"
+                                         Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Issue Date</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudDatePicker @bind-Value="@invoice.Issue_Date" Variant="Variant.Outlined"/>
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Due Date</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudDatePicker @bind-Value="@invoice.Due_Date" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" sm="6" md="6" xl="6">
+        <MudCard Style="padding-bottom: 1rem;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Client Details</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Name</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudAutocomplete T="ClientVM"
+                                         Label="Search Client"
+                                         SearchFunc="SearchClients"
+                                         ToStringFunc="client => client?.Company_Name"
+                                         Adornment="Adornment.End"
+                                         AdornmentIcon="@Icons.Material.Filled.Search"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         ValueChanged="OnClientSelected"
+                                         Variant="Variant.Outlined" />
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Email</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudTextField @bind-Value="@selectedClient.Email" Variant="Variant.Outlined" Disabled="true"></MudTextField>
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Phone</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudTextField @bind-Value="@selectedClient.Phone" Variant="Variant.Outlined" Disabled="true"></MudTextField>
+                    </MudItem>
+
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.body1">Address</MudText>
+                    </MudItem>
+                    <MudItem xs="8">
+                        <MudTextField @bind-Value="@selectedClient.Address" Variant="Variant.Outlined" Lines="3" Disabled="true"></MudTextField>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12">
+        <MudCard Style="padding-bottom: 1rem;">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudGrid>
+                        <MudItem xs="6" Class="d-flex justify-start">
+                            <MudText Typo="Typo.h6">Service Details</MudText>
+                        </MudItem>
+                        <MudItem xs="6" Class="d-flex justify-end">
+                            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddNewInvoiceItem">
+                                Add Item
+                            </MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <!-- Invoice Item Table -->
+                <MudTable Items="@invoice.Items" Hover="true">
+                    <HeaderContent>
+                        <MudTh>Description</MudTh>
+                        <MudTh>Quantity</MudTh>
+                        <MudTh>Unit Price</MudTh>
+                        <MudTh>Total</MudTh>
+                        <MudTh></MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>
+                            <MudTextField @bind-Value="@context.Description" Immediate="true" Variant="Variant.Outlined" />
+                        </MudTd>
+                        <MudTd>
+                            <MudNumericField HideSpinButtons="true" T="int" @bind-Value="@context.Quantity" Immediate="true" Variant="Variant.Outlined" />
+                        </MudTd>
+                        <MudTd>
+                            <MudNumericField HideSpinButtons="true" T="decimal" @bind-Value="@context.Unit_Price" Immediate="true" Adornment="Adornment.Start" AdornmentText="RM" Variant="Variant.Outlined" />
+                        </MudTd>
+                        <MudTd>
+                            @(context.Quantity * context.Unit_Price)
+                        </MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveInvoiceItem(context)" />
+                        </MudTd>
+                    </RowTemplate>
+                    <FooterContent>
+                        <MudTd ColSpan="3">
+                            <MudTextField Label="Note" Variant="Variant.Outlined" FullWidth="true" @bind-Value="note" Lines="3" />
+                        </MudTd>
+                        <MudTd>
+                            <MudText Typo="Typo.body2">Subtotal</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax %</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Delivery</MudText>
+                            <MudText Typo="Typo.h6" Class="mt-2">Grand Total</MudText>
+                        </MudTd>
+
+                        <!-- Pricing values in adjacent column -->
+                        <MudTd>
+                            <MudText Typo="Typo.body2">@subTotal.ToString("C")</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">@tax.ToString("C")</MudText>
+                            <MudTextField Class="mt-2" Adornment="Adornment.End" AdornmentText="%" Style="height: 25px; width: 90px;" @bind-Value="@taxRate" Immediate="true" Variant="Variant.Outlined" />
+                            <MudNumericField Class="mt-2" Adornment="Adornment.Start" AdornmentText="RM" Style="height: 25px; width: 90px;" HideSpinButtons="true" T="decimal" @bind-Value="delivery" Variant="Variant.Outlined" />
+                            <MudText Typo="Typo.h6" Class="mt-2">@grandTotal.ToString("C")</MudText>
+                        </MudTd>
+                    </FooterContent>
+                </MudTable>
+                <MudButton Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" OnClick="AddNewInvoice">
+                    Save Invoice
+                </MudButton>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private Invoice invoice = new();
+    private Invoice_Item invoice_Item = new();
+    private List<ClientVM> clientList = new();
+    private List<StatusVM> statusList = new();
+    private ClientVM selectedClient = new(); 
+    private string note = string.Empty;
+    private decimal taxRate = 0;
+    private decimal delivery = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        clientList = await clientService.GetAllClients();
+        invoice.Number = await invoiceService.GetNextInvoiceNumberAsync();
+        invoice.Items = new List<Invoice_Item>
+        {
+            new Invoice_Item { Quantity = 1, Unit_Price = 0 }
+        };
+    }
+
+    private void AddNewInvoiceItem()
+    {
+        invoice.Items.Add(new Invoice_Item { Quantity = 1, Unit_Price = 0 });
+    }
+
+    private void RemoveInvoiceItem(Invoice_Item item)
+    {
+        invoice.Items.Remove(item);
+    }
+
+    private async Task AddNewInvoice()
+    {
+        try
+        {
+            await invoiceService.SaveInvoice(invoice);
+            Snackbar.Add("Invoice saved successfully.", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+    }
+
+    private Task<IEnumerable<ClientVM>> SearchClients(string value, CancellationToken token)
+    {
+        IEnumerable<ClientVM> result = string.IsNullOrWhiteSpace(value)
+            ? clientList
+            : clientList.Where(x => x.Company_Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(result);
+    }
+
+    private void OnClientSelected(ClientVM client)
+    {
+        if (client is null) return;
+
+        invoice.Client_Id = client.Id;
+        selectedClient.Phone = client.Phone;
+        selectedClient.Email = client.Email;
+        selectedClient.Address = client.Address;
+    }
+
+    private Task<IEnumerable<StatusVM>> SearchStatus(string value, CancellationToken token)
+    {
+        IEnumerable<StatusVM> result = string.IsNullOrWhiteSpace(value)
+            ? statusList
+            : statusList.Where(x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(result);
+    }
+
+    private void OnStatusSelected(StatusVM status)
+    {
+        if (status is null) return;
+
+        invoice.Status_Id = status.Id;
+    }
+
+    private decimal subTotal => invoice.Items.Sum(i => i.Quantity * i.Unit_Price);
+    private decimal tax => subTotal * (taxRate / 100);
+    private decimal grandTotal => subTotal + tax + delivery;
+}
