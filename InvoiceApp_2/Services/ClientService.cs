@@ -19,6 +19,7 @@ namespace InvoiceApp_2.Services
             return await _db.Clients
                 .Select(client => new ClientVM
                 {
+                    Id = client.Id,
                     Company_Name = client.Company_Name,
                     Email = client.Email,
                     Phone = client.Phone,

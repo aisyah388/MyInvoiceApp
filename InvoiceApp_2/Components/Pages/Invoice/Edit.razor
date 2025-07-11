@@ -21,13 +21,24 @@
                     <MudItem xs="8"><MudTextField @bind-Value="@invoice.Number" Variant="Variant.Outlined" /></MudItem>
 
                     <MudItem xs="4"><MudText Typo="Typo.body1">Payment Status</MudText></MudItem>
-                    <MudItem xs="8"><MudTextField @bind-Value="@invoice.Status" Variant="Variant.Outlined" /></MudItem>
+                    <MudItem xs="8">
+                        <MudAutocomplete T="StatusVM"
+                                         Label="Search Status"
+                                         SearchFunc="SearchStatus"
+                                         ToStringFunc="status => status.Name"
+                                         Adornment="Adornment.End"
+                                         AdornmentIcon="@Icons.Material.Filled.Search"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         ValueChanged="OnStatusSelected"
+                                         Variant="Variant.Outlined" />
+                    </MudItem>
 
                     <MudItem xs="4"><MudText Typo="Typo.body1">Issue Date</MudText></MudItem>
-                    <MudItem xs="8"><MudDatePicker @bind-Value="@invoice.Issue_Date" Variant="Variant.Outlined" /></MudItem>
+                    <MudItem xs="8"><MudDatePicker @bind-Date="@invoice.Issue_Date" Variant="Variant.Outlined" /></MudItem>
 
                     <MudItem xs="4"><MudText Typo="Typo.body1">Due Date</MudText></MudItem>
-                    <MudItem xs="8"><MudDatePicker @bind-Value="@invoice.Due_Date" Variant="Variant.Outlined" /></MudItem>
+                    <MudItem xs="8"><MudDatePicker @bind-Date="@invoice.Due_Date" Variant="Variant.Outlined" /></MudItem>
                 </MudGrid>
             </MudCardContent>
         </MudCard>
@@ -123,6 +134,7 @@
 
     private Invoice invoice = new();
     private ClientVM client = new();
+    private List<StatusVM> statusList = new();
     private string note = string.Empty;
     private decimal taxRate = 0;
     private decimal delivery = 0;
@@ -174,6 +186,22 @@
         {
             Snackbar.Add($"Error: {ex.Message}", Severity.Error);
         }
+    }
+
+    private Task<IEnumerable<StatusVM>> SearchStatus(string value, CancellationToken token)
+    {
+        IEnumerable<StatusVM> result = string.IsNullOrWhiteSpace(value)
+            ? statusList
+            : statusList.Where(x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+
+        return Task.FromResult(result);
+    }
+
+    private void OnStatusSelected(StatusVM status)
+    {
+        if (status is null) return;
+
+        invoice.Status_Id = status.Id;
     }
 
     private decimal subTotal => invoice.Items.Sum(i => i.Quantity * i.Unit_Price);

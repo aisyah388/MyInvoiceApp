@@ -1,4 +1,4 @@
-using InvoiceApp_2.Components;
+using MyInvoiceApp.Components;
 using InvoiceApp_2.Data;
 using InvoiceApp_2.Services;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +21,7 @@ builder.Services.AddMudServices();
 //Register service
 builder.Services.AddScoped<InvoiceService>();
 builder.Services.AddScoped<ClientService>();
+builder.Services.AddScoped<StatusService>();
 
 var app = builder.Build();
 

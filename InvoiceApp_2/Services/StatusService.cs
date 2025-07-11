@@ -1,5 +1,6 @@
 ﻿using InvoiceApp_2.Data;
 using InvoiceApp_2.Model;
+using InvoiceApp_2.ViewModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace InvoiceApp_2.Services
@@ -13,9 +14,14 @@ namespace InvoiceApp_2.Services
             _db = db;
         }
 
-        public async Task<List<Status>> GetAllStatuses()
+        public async Task<List<StatusVM>> GetAllStatuses()
         {
-            return await _db.Status.ToListAsync();
+            return await _db.Status
+               .Select(status => new StatusVM
+               {
+                  Id = status.Id,
+                  Name = status.Name
+               }).ToListAsync();
         }
     }
 }

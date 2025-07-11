@@ -8,8 +8,8 @@ namespace InvoiceApp_2.Model
         public Guid Client_Id { get; set; }
         public string? Number { get; set; }
         public Guid? Status_Id { get; set; }
-        public DateOnly? Issue_Date { get; set; }
-        public DateOnly? Due_Date { get; set; }
+        public DateTime? Issue_Date { get; set; }
+        public DateTime? Due_Date { get; set; }
         public List<Invoice_Item>? Items { get; set; }
 
         [ForeignKey("Client_Id")]

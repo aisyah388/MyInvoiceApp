@@ -46,7 +46,7 @@
                 <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditInvoice(invoice.Id))">
                     Edit
                 </MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error">
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteInvoice(invoice.Id))">
                     Delete
                 </MudButton>
             </MudStack>
@@ -82,6 +82,19 @@
     private void EditInvoice(Guid id)
     {
         Navigation.NavigateTo($"/invoice/edit/{id}");
+    }
+
+    private async Task DeleteInvoice(Guid id)
+    {
+        try
+        {
+            await invoiceService.DeleteInvoice(id);
+            Snackbar.Add("Invoice deleted successfully.", Severity.Error);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to delete invoice. Try again later.", Severity.Error);
+        }
     }
 
     private Color GetChipColor(string status)

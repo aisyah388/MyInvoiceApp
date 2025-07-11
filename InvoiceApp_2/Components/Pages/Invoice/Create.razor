@@ -2,6 +2,7 @@
 @using InvoiceApp_2.ViewModel
 @inject InvoiceService invoiceService
 @inject ClientService clientService
+@inject StatusService statusService
 
 <MudText Typo="Typo.h4">Add New Invoice</MudText>
 <MudGrid>
@@ -26,29 +27,29 @@
                     </MudItem>
                     <MudItem xs="8">
                         <MudAutocomplete T="StatusVM"
-                                         Label="Search Status"
-                                         SearchFunc="SearchStatus"
-                                         ToStringFunc="status => status.Name"
-                                         Adornment="Adornment.End"
-                                         AdornmentIcon="@Icons.Material.Filled.Search"
-                                         ResetValueOnEmptyText="true"
-                                         CoerceText="true"
-                                         ValueChanged="OnStatusSelected"
-                                         Variant="Variant.Outlined" />
+                        Label="Search Status"
+                        SearchFunc="SearchStatus"
+                        ToStringFunc="status => status.Name"
+                        Adornment="Adornment.End"
+                        AdornmentIcon="@Icons.Material.Filled.Search"
+                        ResetValueOnEmptyText="true"
+                        CoerceText="true"
+                        ValueChanged="OnStatusSelected"
+                        Variant="Variant.Outlined" />
                     </MudItem>
 
                     <MudItem xs="4">
                         <MudText Typo="Typo.body1">Issue Date</MudText>
                     </MudItem>
                     <MudItem xs="8">
-                        <MudDatePicker @bind-Value="@invoice.Issue_Date" Variant="Variant.Outlined"/>
+                        <MudDatePicker @bind-Date="@invoice.Issue_Date" Variant="Variant.Outlined"/>
                     </MudItem>
 
                     <MudItem xs="4">
                         <MudText Typo="Typo.body1">Due Date</MudText>
                     </MudItem>
                     <MudItem xs="8">
-                        <MudDatePicker @bind-Value="@invoice.Due_Date" Variant="Variant.Outlined" />
+                        <MudDatePicker @bind-Date="@invoice.Due_Date" Variant="Variant.Outlined" />
                     </MudItem>
                 </MudGrid>
             </MudCardContent>
@@ -68,15 +69,15 @@
                     </MudItem>
                     <MudItem xs="8">
                         <MudAutocomplete T="ClientVM"
-                                         Label="Search Client"
-                                         SearchFunc="SearchClients"
-                                         ToStringFunc="client => client?.Company_Name"
-                                         Adornment="Adornment.End"
-                                         AdornmentIcon="@Icons.Material.Filled.Search"
-                                         ResetValueOnEmptyText="true"
-                                         CoerceText="true"
-                                         ValueChanged="OnClientSelected"
-                                         Variant="Variant.Outlined" />
+                        Label="Search Client"
+                        SearchFunc="SearchClients"
+                        ToStringFunc="client => client?.Company_Name"
+                        Adornment="Adornment.End"
+                        AdornmentIcon="@Icons.Material.Filled.Search"
+                        ResetValueOnEmptyText="true"
+                        CoerceText="true"
+                        ValueChanged="OnClientSelected"
+                        Variant="Variant.Outlined" />
                     </MudItem>
 
                     <MudItem xs="4">
@@ -189,6 +190,7 @@
     protected override async Task OnInitializedAsync()
     {
         clientList = await clientService.GetAllClients();
+        statusList = await statusService.GetAllStatuses(); 
         invoice.Number = await invoiceService.GetNextInvoiceNumberAsync();
         invoice.Items = new List<Invoice_Item>
         {
@@ -212,6 +214,7 @@
         {
             await invoiceService.SaveInvoice(invoice);
             Snackbar.Add("Invoice saved successfully.", Severity.Success);
+            Navigation.NavigateTo("/invoice/list");
         }
         catch (Exception ex)
         {
