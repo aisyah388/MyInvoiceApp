@@ -1,0 +1,30 @@
+﻿@using static InvoiceApp_2.Services.InvoiceService
+@inject IJSRuntime JS
+
+<div id="invoiceChart" style="width:100%; height:400px;"></div>
+
+@code {
+    [Parameter]
+    public List<InvoiceSummary> SummaryData { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SummaryData != null)
+        {
+            var monthly = SummaryData
+                .Where(x => x.Month != null)
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToList();
+
+            var labels = monthly.Select(x => $"{x.Month:00}/{x.Year}").ToList();
+            var totals = monthly.Select(x => x.Total).ToList();
+
+            await JS.InvokeVoidAsync("renderInvoiceChart", "invoiceChart", new
+            {
+                labels,
+                totals
+            });
+        }
+    }
+}

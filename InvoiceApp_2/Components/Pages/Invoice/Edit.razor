@@ -96,7 +96,7 @@
                         <MudTd><MudTextField @bind-Value="@context.Description" Immediate="true" Variant="Variant.Outlined" /></MudTd>
                         <MudTd><MudNumericField T="int" @bind-Value="@context.Quantity" Immediate="true" Variant="Variant.Outlined" HideSpinButtons="true" /></MudTd>
                         <MudTd><MudNumericField T="decimal" @bind-Value="@context.Unit_Price" Immediate="true" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentText="RM" HideSpinButtons="true" /></MudTd>
-                        <MudTd>@(context.Quantity * context.Unit_Price).ToString("C")</MudTd>
+                        <MudTd>RM @(context.Quantity * context.Unit_Price)</MudTd>
                         <MudTd><MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="() => RemoveInvoiceItem(context)" /></MudTd>
                     </RowTemplate>
                     <FooterContent>

@@ -137,5 +137,50 @@ namespace InvoiceApp_2.Services
 
             return $"INV-{currentYear}-{nextNumber.ToString("D3")}";
         }
+
+        public async Task<List<InvoiceSummary>> GetInvoiceSummary()
+        {
+            var invoices = await _db.Invoices
+                .Include(i => i.Items)
+                .Where(i => i.Issue_Date.HasValue)
+                .ToListAsync();
+
+            var summaries = invoices
+                .Select(i => new
+                {
+                    Year = i.Issue_Date.Value.Year,
+                    Month = i.Issue_Date.Value.Month,
+                    Total = i.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m
+                })
+                .ToList();
+
+            var monthlyTotals = summaries
+                .GroupBy(x => new { x.Year, x.Month })
+                .Select(g => new InvoiceSummary
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Total = g.Sum(x => x.Total)
+                });
+
+            var yearlyTotals = summaries
+                .GroupBy(x => x.Year)
+                .Select(g => new InvoiceSummary
+                {
+                    Year = g.Key,
+                    Month = null,
+                    Total = g.Sum(x => x.Total)
+                });
+
+            return monthlyTotals.Concat(yearlyTotals).OrderBy(x => x.Year).ThenBy(x => x.Month ?? 0).ToList();
+        }
+
+
+        public class InvoiceSummary
+        {
+            public int Year { get; set; }
+            public int? Month { get; set; }
+            public decimal Total { get; set; }
+        }
     }
 }

@@ -1,0 +1,23 @@
+﻿@page "/"
+@using static InvoiceApp_2.Services.InvoiceService
+@inject InvoiceService InvoiceService
+
+<MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
+
+@if (summaryData == null)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else
+{
+    <MyInvoiceApp.Components.Pages.Invoice.Chart SummaryData="summaryData" />
+}
+
+@code {
+    private List<InvoiceSummary>? summaryData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        summaryData = await InvoiceService.GetInvoiceSummary();
+    }
+}

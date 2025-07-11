@@ -1,5 +1,4 @@
-﻿@page "/"
-@page "/invoice/list"
+﻿@page "/invoice/list"
 @inject InvoiceService invoiceService
 @inject NavigationManager Navigation
 @inject ISnackbar Snackbar
@@ -26,9 +25,9 @@
 
     <RowTemplate Context="invoice">
         <MudTd>@invoice.Number</MudTd>
-        <MudTd>@invoice.Issue_Date?.ToString("yyyy-MM-dd")</MudTd>
+        <MudTd>@invoice.Issue_Date?.ToString("dd/MM/yyyy")</MudTd>
         <MudTd>@invoice.Client?.Company_Name</MudTd>
-        <MudTd>@invoice.Due_Date?.ToString("yyyy-MM-dd")</MudTd>
+        <MudTd>@invoice.Due_Date?.ToString("dd/MM/yyyy")</MudTd>
         <MudTd>@invoice.Total.ToString("C")</MudTd>
         <MudTd>
             @if (invoice.Status != null)
@@ -40,9 +39,9 @@
         </MudTd>
         <MudTd>
             <MudStack Row Spacing="1">
-                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Tertiary">
+                @* <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Tertiary">
                     Print
-                </MudButton>
+                </MudButton> *@
                 <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditInvoice(invoice.Id))">
                     Edit
                 </MudButton>
