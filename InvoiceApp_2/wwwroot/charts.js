@@ -11,7 +11,7 @@
             title: { text: 'Total Amount (RM)' }
         },
         series: [{
-            name: 'Invoices',
+            name: 'RM',
             data: chartData.totals
         }]
     });

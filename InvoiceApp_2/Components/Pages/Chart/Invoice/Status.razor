@@ -1,7 +1,9 @@
 ﻿@using static InvoiceApp_2.Services.StatusService
 @inject IJSRuntime JS
 
-<div id="statusChart" class="mt-5" style="width:100%; height:400px;"></div>
+<MudPaper Class="pa-16 ma-2" Elevation="0" Outlined="true">
+    <div id="statusChart" class="mt-5" style="width:100%; height:400px;"></div>
+</MudPaper>
 
 @code {
     [Parameter]

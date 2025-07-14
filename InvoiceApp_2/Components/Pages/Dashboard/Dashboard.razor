@@ -12,8 +12,14 @@
 }
 else
 {
-    <MyInvoiceApp.Components.Pages.Chart.Invoice.Monthly SummaryData="summaryData" />
-    <MyInvoiceApp.Components.Pages.Chart.Invoice.Status statusSummaries="statusData" />
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+        <div style="flex: 1; height: 400px;">
+            <MyInvoiceApp.Components.Pages.Chart.Invoice.Monthly SummaryData="summaryData" />
+        </div>
+        <div style="flex: 1; height: 400px;">
+            <MyInvoiceApp.Components.Pages.Chart.Invoice.Status StatusSummaries="statusData" />
+        </div>
+    </div>
 }
 
 @code {
