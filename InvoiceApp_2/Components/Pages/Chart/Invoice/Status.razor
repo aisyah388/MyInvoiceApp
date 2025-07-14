@@ -1,0 +1,23 @@
+﻿@using static InvoiceApp_2.Services.StatusService
+@inject IJSRuntime JS
+
+<div id="statusChart" class="mt-5" style="width:100%; height:400px;"></div>
+
+@code {
+    [Parameter]
+    public List<StatusSummary> StatusSummaries { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && StatusSummaries != null)
+        {
+            var statusData = StatusSummaries.Select(s => new
+            {
+                name = s.Name,
+                y = s.InvoiceCount
+            }).ToList();
+
+            await JS.InvokeVoidAsync("statusChart", "statusChart", statusData);
+        }
+    }
+}

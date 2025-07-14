@@ -1,4 +1,4 @@
-﻿window.renderInvoiceChart = (containerId, chartData) => {
+﻿window.invoiceChart = (containerId, chartData) => {
     Highcharts.chart(containerId, {
         chart: { type: 'column' },
         title: { text: 'Monthly Invoice Totals' },
@@ -17,27 +17,37 @@
     });
 };
 
-window.statusChart = function (chartData) {
-    Highcharts.chart('statusChartContainer', {
+window.statusChart = function (containerId, chartData) {
+    Highcharts.chart(containerId, {
         chart: {
-            type: 'column'
+            type: 'pie'
         },
         title: {
             text: 'Invoices by Status'
         },
-        xAxis: {
-            categories: chartData.statusNames,
-            crosshair: true
+        tooltip: {
+            pointFormat: '{series.name}: <b>{point.y}</b>'
         },
-        yAxis: {
-            min: 0,
-            title: {
-                text: 'Invoice Count'
+        accessibility: {
+            point: {
+                valueSuffix: ''
+            }
+        },
+        plotOptions: {
+            pie: {
+                allowPointSelect: true,
+                cursor: 'pointer',
+                dataLabels: {
+                    enabled: true,
+                    format: '<b>{point.name}</b>: {point.y}'
+                }
             }
         },
         series: [{
             name: 'Invoices',
-            data: chartData.invoiceCounts
+            colorByPoint: true,
+            data: chartData
         }]
     });
 };
+

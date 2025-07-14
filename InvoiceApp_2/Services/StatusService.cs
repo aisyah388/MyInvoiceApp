@@ -23,5 +23,23 @@ namespace InvoiceApp_2.Services
                   Name = status.Name
                }).ToListAsync();
         }
+        public async Task<List<StatusSummary>> GetInvoiceCountByStatus()
+        {
+            return await _db.Status
+                .Select(status => new StatusSummary
+                {
+                    Id = status.Id,
+                    Name = status.Name,
+                    InvoiceCount = _db.Invoices.Count(i => i.Status_Id == status.Id)
+                })
+                .ToListAsync();
+        }
+
+        public class StatusSummary
+        {
+            public Guid Id { get; set; }
+            public string? Name { get; set; }
+            public int InvoiceCount { get; set; }
+        }
     }
 }

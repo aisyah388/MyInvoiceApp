@@ -1,23 +1,28 @@
 ﻿@page "/"
+@using static InvoiceApp_2.Services.StatusService
 @using static InvoiceApp_2.Services.InvoiceService
 @inject InvoiceService InvoiceService
+@inject StatusService StatusService
 
 <MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
 
-@if (summaryData == null)
+@if (summaryData == null && statusData == null)
 {
     <MudProgressCircular Color="Color.Default" Indeterminate="true" />
 }
 else
 {
-    <MyInvoiceApp.Components.Pages.Invoice.Chart SummaryData="summaryData" />
+    <MyInvoiceApp.Components.Pages.Chart.Invoice.Monthly SummaryData="summaryData" />
+    <MyInvoiceApp.Components.Pages.Chart.Invoice.Status statusSummaries="statusData" />
 }
 
 @code {
     private List<InvoiceSummary>? summaryData;
+    private List<StatusSummary>? statusData;
 
     protected override async Task OnInitializedAsync()
     {
         summaryData = await InvoiceService.GetInvoiceSummary();
+        statusData = await StatusService.GetInvoiceCountByStatus();
     }
 }

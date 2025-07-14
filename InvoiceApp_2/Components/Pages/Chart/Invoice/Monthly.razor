@@ -20,7 +20,7 @@
             var labels = monthly.Select(x => $"{x.Month:00}/{x.Year}").ToList();
             var totals = monthly.Select(x => x.Total).ToList();
 
-            await JS.InvokeVoidAsync("renderInvoiceChart", "invoiceChart", new
+            await JS.InvokeVoidAsync("invoiceChart", "invoiceChart", new
             {
                 labels,
                 totals
