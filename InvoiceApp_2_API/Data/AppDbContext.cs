@@ -1,7 +1,7 @@
-﻿using InvoiceApp_2.Model;
+﻿using MyInvoiceApp.Shared.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace InvoiceApp_2.Data
+namespace MyInvoiceApp_API.Data
 {
     public class AppDbContext : DbContext
     {

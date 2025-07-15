@@ -6,10 +6,13 @@
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 @using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.JSInterop
-@using InvoiceApp_2
+@using MyInvoiceApp
 @using MyInvoiceApp.Components
 @using MudBlazor
-@using InvoiceApp_2.Model
-@using InvoiceApp_2.Services
+@using MyInvoiceApp.Shared.Model
+@using MyInvoiceApp.Shared.ViewModel
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject HttpClient Http
 @inject NavigationManager Navigation
+@inject IJSRuntime JS

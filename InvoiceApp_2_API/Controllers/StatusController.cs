@@ -1,19 +1,24 @@
-﻿using InvoiceApp_2.Data;
-using InvoiceApp_2.Model;
-using InvoiceApp_2.ViewModel;
+﻿using MyInvoiceApp.Shared.Model;
+using MyInvoiceApp.Shared.ViewModel;
+using MyInvoiceApp_API.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using MyInvoiceApp_Shared.ViewModel;
 
-namespace InvoiceApp_2.Services
+namespace MyInvoiceApp_API.Controller
 {
-    public class StatusService
+    [ApiController]
+    [Route("api/[controller]")]
+    public class StatusController : ControllerBase
     {
         private readonly AppDbContext _db;
 
-        public StatusService(AppDbContext db)
+        public StatusController(AppDbContext db)
         {
             _db = db;
         }
 
+        [HttpGet("all-statuses")]
         public async Task<List<StatusVM>> GetAllStatuses()
         {
             return await _db.Status
@@ -23,23 +28,18 @@ namespace InvoiceApp_2.Services
                   Name = status.Name
                }).ToListAsync();
         }
-        public async Task<List<StatusSummary>> GetInvoiceCountByStatus()
+
+        [HttpGet("invoice-count")]
+        public async Task<List<StatusSummaryVM>> GetInvoiceCountByStatus()
         {
             return await _db.Status
-                .Select(status => new StatusSummary
+                .Select(status => new StatusSummaryVM
                 {
                     Id = status.Id,
                     Name = status.Name,
                     InvoiceCount = _db.Invoices.Count(i => i.Status_Id == status.Id)
                 })
                 .ToListAsync();
-        }
-
-        public class StatusSummary
-        {
-            public Guid Id { get; set; }
-            public string? Name { get; set; }
-            public int InvoiceCount { get; set; }
         }
     }
 }

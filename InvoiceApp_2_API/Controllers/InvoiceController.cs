@@ -1,19 +1,26 @@
-﻿using InvoiceApp_2.Data;
-using InvoiceApp_2.Model;
+﻿using MyInvoiceApp_API.Data;
+using MyInvoiceApp.Shared.Model;
+using MyInvoiceApp.Shared.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Mvc;
+using MyInvoiceApp_Shared.ViewModel;
 
-namespace InvoiceApp_2.Services
+namespace MyInvoiceApp_API.Controller
 {
-    public class InvoiceService
+    [ApiController]
+    [Route("api/invoice")]
+    public class InvoiceController : ControllerBase
     {
         private readonly AppDbContext _db;
 
-        public InvoiceService(AppDbContext db)
+
+        public InvoiceController(AppDbContext db)
         {
             _db = db;
         }
 
+        [HttpGet("all-invoices")]
         public async Task<List<Invoice>> GetAllInvoices()
         {
             var invoices = await _db.Invoices
@@ -31,6 +38,7 @@ namespace InvoiceApp_2.Services
             return invoices;
         }
 
+        [HttpGet("{id}", Name = "get-invoice-by-id")]
         public async Task<Invoice> GetInvoiceById(Guid id)
         {
             var invoice = await _db.Invoices
@@ -46,6 +54,7 @@ namespace InvoiceApp_2.Services
             return invoice;
         }
 
+        [HttpPost("add", Name = "add-invoice")]
         public async Task SaveInvoice(Invoice invoice)
         {
             var existingInvoice = await _db.Invoices
@@ -54,22 +63,17 @@ namespace InvoiceApp_2.Services
 
             if (existingInvoice == null)
             {
-                // New invoice
                 _db.Invoices.Add(invoice);
             }
             else
             {
-                // Update existing invoice fields
                 _db.Entry(existingInvoice).CurrentValues.SetValues(invoice);
 
-                // Update Client
                 if (existingInvoice.Client != null && invoice.Client != null)
                 {
                     _db.Entry(existingInvoice.Client).CurrentValues.SetValues(invoice.Client);
                 }
 
-                // Handle Invoice Items:
-                // Remove deleted items
                 foreach (var existingItem in existingInvoice.Items.ToList())
                 {
                     if (!invoice.Items.Any(i => i.Id == existingItem.Id))
@@ -78,7 +82,6 @@ namespace InvoiceApp_2.Services
                     }
                 }
 
-                // Add or update items
                 foreach (var item in invoice.Items)
                 {
                     var existingItem = existingInvoice.Items.FirstOrDefault(i => i.Id == item.Id);
@@ -96,16 +99,16 @@ namespace InvoiceApp_2.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task DeleteInvoice(Guid invoiceId)
+        [HttpDelete("{id}", Name = "delete-invoice")]
+        public async Task DeleteInvoice(Guid id)
         {
             var invoice = await _db.Invoices
                 .Include(i => i.Items)
-                .FirstOrDefaultAsync(i => i.Id == invoiceId);
+                .FirstOrDefaultAsync(i => i.Id == id);
 
             if (invoice == null)
                 throw new KeyNotFoundException("Invoice not found");
 
-            // Remove related items first (if cascade delete is not configured)
             if (invoice.Items != null)
             {
                 _db.Invoice_Items.RemoveRange(invoice.Items);
@@ -115,7 +118,8 @@ namespace InvoiceApp_2.Services
             await _db.SaveChangesAsync();
         }
 
-        public async Task<string> GetNextInvoiceNumberAsync()
+        [HttpGet("next-inv-number")]
+        public async Task<string> GetNextInvoiceNumber()
         {
             var currentYear = DateTime.Now.Year;
 
@@ -138,7 +142,8 @@ namespace InvoiceApp_2.Services
             return $"INV-{currentYear}-{nextNumber.ToString("D3")}";
         }
 
-        public async Task<List<InvoiceSummary>> GetInvoiceSummary()
+        [HttpGet("summary")]
+        public async Task<List<InvoiceSummaryVM>> GetInvoiceSummary()
         {
             var invoices = await _db.Invoices
                 .Include(i => i.Items)
@@ -156,7 +161,7 @@ namespace InvoiceApp_2.Services
 
             var monthlyTotals = summaries
                 .GroupBy(x => new { x.Year, x.Month })
-                .Select(g => new InvoiceSummary
+                .Select(g => new InvoiceSummaryVM
                 {
                     Year = g.Key.Year,
                     Month = g.Key.Month,
@@ -165,7 +170,7 @@ namespace InvoiceApp_2.Services
 
             var yearlyTotals = summaries
                 .GroupBy(x => x.Year)
-                .Select(g => new InvoiceSummary
+                .Select(g => new InvoiceSummaryVM
                 {
                     Year = g.Key,
                     Month = null,
@@ -173,14 +178,6 @@ namespace InvoiceApp_2.Services
                 });
 
             return monthlyTotals.Concat(yearlyTotals).OrderBy(x => x.Year).ThenBy(x => x.Month ?? 0).ToList();
-        }
-
-
-        public class InvoiceSummary
-        {
-            public int Year { get; set; }
-            public int? Month { get; set; }
-            public decimal Total { get; set; }
         }
     }
 }

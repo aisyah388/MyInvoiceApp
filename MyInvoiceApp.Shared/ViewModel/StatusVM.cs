@@ -1,6 +1,6 @@
-﻿namespace InvoiceApp_2.Model
+﻿namespace MyInvoiceApp.Shared.ViewModel
 {
-    public class Role
+    public class StatusVM
     {
         public Guid Id { get; set; }
         public string? Name { get; set; }

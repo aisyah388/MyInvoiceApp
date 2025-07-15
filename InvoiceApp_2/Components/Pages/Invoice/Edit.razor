@@ -1,9 +1,4 @@
 ﻿@page "/invoice/edit/{Id:guid}"
-@using InvoiceApp_2.ViewModel
-@inject InvoiceService invoiceService
-@inject ClientService clientService
-@inject ISnackbar Snackbar
-@inject NavigationManager NavigationManager
 
 <MudText Typo="Typo.h4">Edit Invoice</MudText>
 
@@ -127,7 +122,6 @@
     </MudItem>
 </MudGrid>
 
-
 @code {
     [Parameter]
     public Guid Id { get; set; }
@@ -141,26 +135,35 @@
 
     protected override async Task OnInitializedAsync()
     {
-        invoice = await invoiceService.GetInvoiceById(Id);
-
-        if (invoice is null)
+        try
         {
-            Snackbar.Add("Invoice not found.", Severity.Error);
-            NavigationManager.NavigateTo("/invoice/list");
-            return;
+            invoice = await Http.GetFromJsonAsync<Invoice>($"api/invoice/{Id}");
+
+            if (invoice is null)
+            {
+                Snackbar.Add("Invoice not found.", Severity.Error);
+                Navigation.NavigateTo("/invoice/list");
+                return;
+            }
+
+            if (invoice.Client_Id != Guid.Empty)
+            {
+                client = await Http.GetFromJsonAsync<ClientVM>($"api/client/{invoice.Client_Id}");
+            }
+
+            statusList = await Http.GetFromJsonAsync<List<StatusVM>>("api/status");
+
+            if (invoice.Items == null || invoice.Items.Count == 0)
+            {
+                invoice.Items = new List<Invoice_Item>
+                {
+                    new Invoice_Item { Quantity = 1, Unit_Price = 0 }
+                };
+            }
         }
-
-        if (invoice.Client_Id != Guid.Empty)
+        catch (Exception ex)
         {
-            client = await clientService.GetClientById(invoice.Client_Id);
-        }
-
-        if (invoice.Items == null || invoice.Items.Count == 0)
-        {
-            invoice.Items = new List<Invoice_Item>
-        {
-            new Invoice_Item { Quantity = 1, Unit_Price = 0 }
-        };
+            Snackbar.Add($"Initialization error: {ex.Message}", Severity.Error);
         }
     }
 
@@ -178,9 +181,17 @@
     {
         try
         {
-            await invoiceService.SaveInvoice(invoice);
-            Snackbar.Add("Invoice updated successfully.", Severity.Success);
-            NavigationManager.NavigateTo("/invoice/list");
+            var response = await Http.PutAsJsonAsync($"api/invoice/{invoice.Id}", invoice);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Invoice updated successfully.", Severity.Success);
+                Navigation.NavigateTo("/invoice/list");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Failed to update: {error}", Severity.Error);
+            }
         }
         catch (Exception ex)
         {

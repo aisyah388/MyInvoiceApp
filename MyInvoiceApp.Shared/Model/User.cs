@@ -1,4 +1,4 @@
-﻿namespace InvoiceApp_2.Model
+﻿namespace MyInvoiceApp.Shared.Model
 {
     public class User
     {

@@ -1,7 +1,4 @@
 ﻿@page "/invoice/list"
-@inject InvoiceService invoiceService
-@inject NavigationManager Navigation
-@inject ISnackbar Snackbar
 
 <MudText Typo="Typo.h4" Class="mb-4">Invoice List</MudText>
 
@@ -39,13 +36,10 @@
         </MudTd>
         <MudTd>
             <MudStack Row Spacing="1">
-                @* <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Print" Color="Color.Tertiary">
-                    Print
-                </MudButton> *@
                 <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditInvoice(invoice.Id))">
                     Edit
                 </MudButton>
-                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteInvoice(invoice.Id))">
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ConfirmDelete(invoice))">
                     Delete
                 </MudButton>
             </MudStack>
@@ -59,13 +53,12 @@
 
 @code {
     private List<Invoice> invoicesList = new();
-    private Invoice? selectedInvoice;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            invoicesList = await invoiceService.GetAllInvoices();
+            invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/invoice/all-invoices");
         }
         catch (Exception)
         {
@@ -83,16 +76,41 @@
         Navigation.NavigateTo($"/invoice/edit/{id}");
     }
 
+    private async Task ConfirmDelete(Invoice invoice)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            title: "Confirm Delete",
+            markupMessage: (MarkupString)$"Are you sure you want to delete <b>{invoice.Number}</b>?",
+            yesText: "Delete",
+            noText: "Cancel",
+            options: new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true }
+        );
+
+        if (result == true)
+        {
+            await DeleteInvoice(invoice.Id);
+        }
+    }
+
     private async Task DeleteInvoice(Guid id)
     {
         try
         {
-            await invoiceService.DeleteInvoice(id);
-            Snackbar.Add("Invoice deleted successfully.", Severity.Error);
+            var response = await Http.DeleteAsync($"api/invoice/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/invoice/all-invoices");
+                Snackbar.Add("Invoice deleted successfully.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete invoice.", Severity.Error);
+            }
         }
         catch (Exception)
         {
-            Snackbar.Add("Failed to delete invoice. Try again later.", Severity.Error);
+            Snackbar.Add("Error occurred while deleting the invoice.", Severity.Error);
         }
     }
 

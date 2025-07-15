@@ -1,19 +1,23 @@
-﻿using InvoiceApp_2.Data;
-using InvoiceApp_2.Model;
-using InvoiceApp_2.ViewModel;
+﻿using MyInvoiceApp_API.Data;
+using MyInvoiceApp.Shared.Model;
+using MyInvoiceApp.Shared.ViewModel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
 
-namespace InvoiceApp_2.Services
+namespace MyInvoiceApp_API.Controller
 {
-    public class ClientService
+    [ApiController]
+    [Route("api/client")]
+    public class ClientController : ControllerBase
     {
         private readonly AppDbContext _db;
 
-        public ClientService(AppDbContext db)
+        public ClientController(AppDbContext db)
         {
             _db = db;
         }
 
+        [HttpGet("all-clients")]
         public async Task<List<ClientVM>> GetAllClients()
         {
             return await _db.Clients
@@ -27,6 +31,7 @@ namespace InvoiceApp_2.Services
                 }).ToListAsync();
         }
 
+        [HttpGet("{id}")]
         public async Task<ClientVM> GetClientById(Guid id)
         {
             var client = await _db.Clients

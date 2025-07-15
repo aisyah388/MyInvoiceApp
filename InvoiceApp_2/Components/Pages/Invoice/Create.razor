@@ -1,8 +1,4 @@
 ﻿@page "/invoice/add"
-@using InvoiceApp_2.ViewModel
-@inject InvoiceService invoiceService
-@inject ClientService clientService
-@inject StatusService statusService
 
 <MudText Typo="Typo.h4">Add New Invoice</MudText>
 <MudGrid>
@@ -187,13 +183,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        clientList = await clientService.GetAllClients();
-        statusList = await statusService.GetAllStatuses(); 
-        invoice.Number = await invoiceService.GetNextInvoiceNumberAsync();
+        clientList = await Http.GetFromJsonAsync<List<ClientVM>>("api/client/all-clients");
+        statusList = await Http.GetFromJsonAsync<List<StatusVM>>("api/all-statuses");
+        invoice.Number = await Http.GetFromJsonAsync<string>("api/invoice/next-inv-number");
+
         invoice.Items = new List<Invoice_Item>
-        {
-            new Invoice_Item { Quantity = 1, Unit_Price = 0 }
-        };
+    {
+        new Invoice_Item { Quantity = 1, Unit_Price = 0 }
+    };
     }
 
     private void AddNewInvoiceItem()
@@ -210,9 +207,17 @@
     {
         try
         {
-            await invoiceService.SaveInvoice(invoice);
-            Snackbar.Add("Invoice saved successfully.", Severity.Success);
-            Navigation.NavigateTo("/invoice/list");
+            var response = await Http.PostAsJsonAsync("api/invoice/add", invoice);
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Invoice saved successfully.", Severity.Success);
+                Navigation.NavigateTo("/invoice/list");
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Snackbar.Add($"Failed to save invoice: {error}", Severity.Error);
+            }
         }
         catch (Exception ex)
         {

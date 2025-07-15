@@ -1,5 +1,5 @@
 ﻿
-namespace InvoiceApp_2.ViewModel
+namespace MyInvoiceApp.Shared.ViewModel
 {
     public class ClientVM
     {

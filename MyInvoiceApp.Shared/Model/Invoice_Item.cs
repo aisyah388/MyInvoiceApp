@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace InvoiceApp_2.Model
+namespace MyInvoiceApp.Shared.Model
 {
     public class Invoice_Item
     {

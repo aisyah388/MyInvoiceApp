@@ -1,6 +1,4 @@
 using MyInvoiceApp.Components;
-using InvoiceApp_2.Data;
-using InvoiceApp_2.Services;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 
@@ -10,19 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseSqlServer(connectionString);
-});
-
 builder.Services.AddMudServices();
-
-//Register service
-builder.Services.AddScoped<InvoiceService>();
-builder.Services.AddScoped<ClientService>();
-builder.Services.AddScoped<StatusService>();
-
+builder.Services.AddScoped<HttpClient>(sp =>
+    new HttpClient { BaseAddress = new Uri("https://localhost:7162/") }
+);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

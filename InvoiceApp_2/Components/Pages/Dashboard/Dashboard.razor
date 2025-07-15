@@ -1,8 +1,6 @@
 ﻿@page "/"
-@using static InvoiceApp_2.Services.StatusService
-@using static InvoiceApp_2.Services.InvoiceService
-@inject InvoiceService InvoiceService
-@inject StatusService StatusService
+@using MyInvoiceApp_Shared.ViewModel
+@inject HttpClient Http
 
 <MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
 
@@ -23,12 +21,12 @@ else
 }
 
 @code {
-    private List<InvoiceSummary>? summaryData;
-    private List<StatusSummary>? statusData;
+    private List<InvoiceSummaryVM>? summaryData;
+    private List<StatusSummaryVM>? statusData;
 
     protected override async Task OnInitializedAsync()
     {
-        summaryData = await InvoiceService.GetInvoiceSummary();
-        statusData = await StatusService.GetInvoiceCountByStatus();
+        summaryData = await Http.GetFromJsonAsync<List<InvoiceSummaryVM>>("api/invoice/summary");
+        statusData = await Http.GetFromJsonAsync<List<StatusSummaryVM>>("api/status/invoice-count");
     }
 }
