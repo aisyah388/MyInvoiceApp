@@ -1,4 +1,5 @@
 ﻿@page "/invoice/list"
+@using MyInvoiceApp_Shared.DTO
 
 <MudText Typo="Typo.h4" Class="mb-4">Invoice List</MudText>
 
@@ -52,13 +53,13 @@
 </MudTable>
 
 @code {
-    private List<Invoice> invoicesList = new();
+    private List<InvoiceDto> invoicesList = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/invoice/all-invoices");
+            invoicesList = await Http.GetFromJsonAsync<List<InvoiceDto>>("api/invoice/all-invoices");
         }
         catch (Exception)
         {
@@ -76,7 +77,7 @@
         Navigation.NavigateTo($"/invoice/edit/{id}");
     }
 
-    private async Task ConfirmDelete(Invoice invoice)
+    private async Task ConfirmDelete(InvoiceDto invoice)
     {
         bool? result = await DialogService.ShowMessageBox(
             title: "Confirm Delete",
@@ -100,7 +101,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                invoicesList = await Http.GetFromJsonAsync<List<Invoice>>("api/invoice/all-invoices");
+                invoicesList = await Http.GetFromJsonAsync<List<InvoiceDto>>("api/invoice/all-invoices");
                 Snackbar.Add("Invoice deleted successfully.", Severity.Success);
             }
             else

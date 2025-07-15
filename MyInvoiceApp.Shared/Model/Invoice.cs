@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace MyInvoiceApp.Shared.Model
 {
@@ -18,6 +19,7 @@ namespace MyInvoiceApp.Shared.Model
         [ForeignKey("Status_Id")]
         public virtual Status? Status { get; set; }
 
+        [JsonIgnore]
         [NotMapped]
         public decimal Total { get; set; }
     }

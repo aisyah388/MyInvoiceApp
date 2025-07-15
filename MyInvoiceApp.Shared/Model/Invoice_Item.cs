@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace MyInvoiceApp.Shared.Model
 {
@@ -12,6 +13,7 @@ namespace MyInvoiceApp.Shared.Model
         public decimal Unit_Price { get; set; }
         public int Quantity { get; set; }
         [ForeignKey("Invoice_Id")]
+        [JsonIgnore]
         public virtual Invoice? Invoice { get; set; }
     }
 }

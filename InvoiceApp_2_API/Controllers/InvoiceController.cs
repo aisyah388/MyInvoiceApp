@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Mvc;
 using MyInvoiceApp_Shared.ViewModel;
+using MyInvoiceApp_Shared.DTO;
 
 namespace MyInvoiceApp_API.Controller
 {
@@ -21,7 +22,7 @@ namespace MyInvoiceApp_API.Controller
         }
 
         [HttpGet("all-invoices")]
-        public async Task<List<Invoice>> GetAllInvoices()
+        public async Task<List<InvoiceDto>> GetAllInvoices()
         {
             var invoices = await _db.Invoices
                 .Include(i => i.Items)
@@ -30,12 +31,33 @@ namespace MyInvoiceApp_API.Controller
                 .OrderByDescending(i => i.Issue_Date)
                 .ToListAsync();
 
-            foreach (var invoice in invoices)
+            var invoiceDtos = invoices.Select(invoice => new InvoiceDto
             {
-                invoice.Total = invoice.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m;
-            }
+                Id = invoice.Id,
+                Number = invoice.Number,
+                Issue_Date = invoice.Issue_Date,
+                Due_Date = invoice.Due_Date,
+                Total = invoice.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m,
+                Client = invoice.Client != null ? new ClientDto
+                {
+                    Id = invoice.Client.Id,
+                    Company_Name = invoice.Client.Company_Name
+                } : null,
+                Status = invoice.Status != null ? new StatusDto
+                {
+                    Id = invoice.Status.Id,
+                    Name = invoice.Status.Name
+                } : null,
+                Items = invoice.Items?.Select(item => new InvoiceItemDto
+                {
+                    Id = item.Id,
+                    Description = item.Description,
+                    Unit_Price = item.Unit_Price,
+                    Quantity = item.Quantity
+                }).ToList() ?? new List<InvoiceItemDto>()
+            }).ToList();
 
-            return invoices;
+            return invoiceDtos;
         }
 
         [HttpGet("{id}", Name = "get-invoice-by-id")]
