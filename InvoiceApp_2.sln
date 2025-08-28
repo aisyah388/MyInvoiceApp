@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyInvoiceApp_API", "Invoice
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MyInvoiceApp_Shared", "MyInvoiceApp.Shared\MyInvoiceApp_Shared.csproj", "{D09F2170-8F33-46A1-8A5A-F322CD784B45}"
 EndProject
+Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "InvoiceApp_Angular", "InvoiceApp_Angular\InvoiceApp_Angular.esproj", "{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,12 @@ Global
 		{D09F2170-8F33-46A1-8A5A-F322CD784B45}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D09F2170-8F33-46A1-8A5A-F322CD784B45}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D09F2170-8F33-46A1-8A5A-F322CD784B45}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C13E3CE8-1A69-B88F-7A20-A39D13CA2472}.Release|Any CPU.Deploy.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
