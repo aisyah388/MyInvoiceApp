@@ -8,7 +8,7 @@ using MyInvoiceApp_Shared.ViewModel;
 namespace MyInvoiceApp_API.Controller
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/status")]
     public class StatusController : ControllerBase
     {
         private readonly AppDbContext _db;

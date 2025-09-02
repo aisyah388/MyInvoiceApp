@@ -96,20 +96,22 @@
                     </RowTemplate>
                     <FooterContent>
                         <MudTd ColSpan="3">
-                            <MudTextField Label="Note" Variant="Variant.Outlined" FullWidth="true" @bind-Value="note" Lines="3" />
+                            
                         </MudTd>
                         <MudTd>
                             <MudText Typo="Typo.body2">Subtotal</MudText>
-                            <MudText Typo="Typo.body2" Class="mt-2">Tax %</MudText>
-                            <MudText Typo="Typo.body2" Class="mt-2">Tax</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax (RM)</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax (%)</MudText>
                             <MudText Typo="Typo.body2" Class="mt-2">Delivery</MudText>
                             <MudText Typo="Typo.h6" Class="mt-2">Grand Total</MudText>
                         </MudTd>
+
+                        <!-- Pricing values in adjacent column -->
                         <MudTd>
                             <MudText Typo="Typo.body2">@subTotal.ToString("C")</MudText>
-                            <MudTextField Class="mt-2" @bind-Value="taxRate" Variant="Variant.Outlined" Style="width: 90px;" Adornment="Adornment.End" AdornmentText="%" Immediate="true" />
                             <MudText Typo="Typo.body2" Class="mt-2">@tax.ToString("C")</MudText>
-                            <MudNumericField Class="mt-2" T="decimal" @bind-Value="delivery" Variant="Variant.Outlined" Style="width: 90px;" Adornment="Adornment.Start" AdornmentText="RM" HideSpinButtons="true" />
+                            <MudTextField Class="mt-2" Adornment="Adornment.End" AdornmentText="%" Style="height: 25px; width: 90px;" @bind-Value="@taxRate" Immediate="true" Variant="Variant.Outlined" />
+                            <MudNumericField Class="mt-2" Adornment="Adornment.Start" AdornmentText="RM" Style="height: 25px; width: 90px;" HideSpinButtons="true" T="decimal" @bind-Value="delivery" Variant="Variant.Outlined" />
                             <MudText Typo="Typo.h6" Class="mt-2">@grandTotal.ToString("C")</MudText>
                         </MudTd>
                     </FooterContent>
@@ -129,7 +131,6 @@
     private Invoice invoice = new();
     private ClientVM client = new();
     private List<StatusVM> statusList = new();
-    private string note = string.Empty;
     private decimal taxRate = 0;
     private decimal delivery = 0;
 
@@ -151,7 +152,7 @@
                 client = await Http.GetFromJsonAsync<ClientVM>($"api/client/{invoice.Client_Id}");
             }
 
-            statusList = await Http.GetFromJsonAsync<List<StatusVM>>("api/status");
+            statusList = await Http.GetFromJsonAsync<List<StatusVM>>("api/status/all-statuses");
 
             if (invoice.Items == null || invoice.Items.Count == 0)
             {

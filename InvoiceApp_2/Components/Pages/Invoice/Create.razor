@@ -143,12 +143,12 @@
                     </RowTemplate>
                     <FooterContent>
                         <MudTd ColSpan="3">
-                            <MudTextField Label="Note" Variant="Variant.Outlined" FullWidth="true" @bind-Value="note" Lines="3" />
+
                         </MudTd>
                         <MudTd>
                             <MudText Typo="Typo.body2">Subtotal</MudText>
-                            <MudText Typo="Typo.body2" Class="mt-2">Tax %</MudText>
-                            <MudText Typo="Typo.body2" Class="mt-2">Tax</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax (RM)</MudText>
+                            <MudText Typo="Typo.body2" Class="mt-2">Tax (%)</MudText>
                             <MudText Typo="Typo.body2" Class="mt-2">Delivery</MudText>
                             <MudText Typo="Typo.h6" Class="mt-2">Grand Total</MudText>
                         </MudTd>
@@ -177,15 +177,14 @@
     private List<ClientVM> clientList = new();
     private List<StatusVM> statusList = new();
     private ClientVM selectedClient = new(); 
-    private string note = string.Empty;
     private decimal taxRate = 0;
     private decimal delivery = 0;
 
     protected override async Task OnInitializedAsync()
     {
         clientList = await Http.GetFromJsonAsync<List<ClientVM>>("api/client/all-clients");
-        statusList = await Http.GetFromJsonAsync<List<StatusVM>>("api/all-statuses");
-        invoice.Number = await Http.GetFromJsonAsync<string>("api/invoice/next-inv-number");
+        statusList = await Http.GetFromJsonAsync<List<StatusVM>>("api/status/all-statuses");
+        invoice.Number = await Http.GetStringAsync("api/invoice/next-inv-number");
 
         invoice.Items = new List<Invoice_Item>
     {
