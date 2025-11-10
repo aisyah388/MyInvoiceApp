@@ -1,5 +1,5 @@
 ﻿using MyInvoiceApp_API.Data;
-using MyInvoiceApp_API.Services.Interfaces;
+using MyInvoiceApp_API.Services.Repository;
 using MyInvoiceApp.Shared.Model;
 using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;

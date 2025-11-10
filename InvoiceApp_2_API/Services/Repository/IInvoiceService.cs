@@ -2,7 +2,7 @@
 using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;
 
-namespace MyInvoiceApp_API.Services.Interfaces
+namespace MyInvoiceApp_API.Services.Repository
 {
     public interface IInvoiceService
     {

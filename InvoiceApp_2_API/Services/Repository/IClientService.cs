@@ -1,6 +1,6 @@
 ﻿using MyInvoiceApp.Shared.ViewModel;
 
-namespace MyInvoiceApp_API.Services.Interfaces
+namespace MyInvoiceApp_API.Services.Repository
 {
     public interface IClientService
     {

@@ -1,5 +1,5 @@
 ﻿using MyInvoiceApp_API.Data;
-using MyInvoiceApp_API.Services.Interfaces;
+using MyInvoiceApp_API.Services.Repository;
 using MyInvoiceApp.Shared.ViewModel;
 using MyInvoiceApp_Shared.ViewModel;
 using Microsoft.EntityFrameworkCore;
