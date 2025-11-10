@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using MyInvoiceApp_API.Controller;
 using MyInvoiceApp_API.Data;
+using MyInvoiceApp_API.Services.Implementation;
+using MyInvoiceApp_API.Services.Interfaces;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -24,10 +26,10 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
-//Register service
-builder.Services.AddScoped<InvoiceController>();
-builder.Services.AddScoped<ClientController>();
-builder.Services.AddScoped<StatusController>();
+//Register interface and services
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
 
 var app = builder.Build();
 

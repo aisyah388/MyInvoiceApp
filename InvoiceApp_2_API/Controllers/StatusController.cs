@@ -1,9 +1,7 @@
-﻿using MyInvoiceApp.Shared.Model;
+﻿using MyInvoiceApp_API.Services.Interfaces;
 using MyInvoiceApp.Shared.ViewModel;
-using MyInvoiceApp_API.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Mvc;
 using MyInvoiceApp_Shared.ViewModel;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MyInvoiceApp_API.Controller
 {
@@ -11,35 +9,27 @@ namespace MyInvoiceApp_API.Controller
     [Route("api/status")]
     public class StatusController : ControllerBase
     {
-        private readonly AppDbContext _db;
+        private readonly IStatusService _statusService;
 
-        public StatusController(AppDbContext db)
+        public StatusController(IStatusService statusService)
         {
-            _db = db;
+            _statusService = statusService;
         }
 
         [HttpGet("all-statuses")]
-        public async Task<List<StatusVM>> GetAllStatuses()
+        [ProducesResponseType(typeof(List<StatusVM>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<StatusVM>>> GetAllStatuses()
         {
-            return await _db.Status
-               .Select(status => new StatusVM
-               {
-                  Id = status.Id,
-                  Name = status.Name
-               }).ToListAsync();
+            var statuses = await _statusService.GetAllStatusesAsync();
+            return Ok(statuses);
         }
 
         [HttpGet("invoice-count")]
-        public async Task<List<StatusSummaryVM>> GetInvoiceCountByStatus()
+        [ProducesResponseType(typeof(List<StatusSummaryVM>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<StatusSummaryVM>>> GetInvoiceCountByStatus()
         {
-            return await _db.Status
-                .Select(status => new StatusSummaryVM
-                {
-                    Id = status.Id,
-                    Name = status.Name,
-                    InvoiceCount = _db.Invoices.Count(i => i.Status_Id == status.Id)
-                })
-                .ToListAsync();
+            var summary = await _statusService.GetInvoiceCountByStatusAsync();
+            return Ok(summary);
         }
     }
 }

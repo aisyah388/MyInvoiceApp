@@ -1,11 +1,8 @@
-﻿using MyInvoiceApp_API.Data;
+﻿using MyInvoiceApp_API.Services.Interfaces;
 using MyInvoiceApp.Shared.Model;
-using MyInvoiceApp.Shared.ViewModel;
-using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
-using Microsoft.AspNetCore.Mvc;
-using MyInvoiceApp_Shared.ViewModel;
 using MyInvoiceApp_Shared.DTO;
+using MyInvoiceApp_Shared.ViewModel;
+using Microsoft.AspNetCore.Mvc;
 
 namespace MyInvoiceApp_API.Controller
 {
@@ -13,193 +10,106 @@ namespace MyInvoiceApp_API.Controller
     [Route("api/invoice")]
     public class InvoiceController : ControllerBase
     {
-        private readonly AppDbContext _db;
+        private readonly IInvoiceService _invoiceService;
 
-
-        public InvoiceController(AppDbContext db)
+        public InvoiceController(IInvoiceService invoiceService)
         {
-            _db = db;
+            _invoiceService = invoiceService;
         }
 
         [HttpGet("all-invoices")]
-        public async Task<List<InvoiceDto>> GetAllInvoices()
+        [ProducesResponseType(typeof(List<InvoiceDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<InvoiceDto>>> GetAllInvoices()
         {
-            var invoices = await _db.Invoices
-                .Include(i => i.Items)
-                .Include(i => i.Client)
-                .Include(i => i.Status)
-                .OrderByDescending(i => i.Issue_Date)
-                .ToListAsync();
-
-            var invoiceDtos = invoices.Select(invoice => new InvoiceDto
-            {
-                Id = invoice.Id,
-                Number = invoice.Number,
-                Issue_Date = invoice.Issue_Date,
-                Due_Date = invoice.Due_Date,
-                Total = invoice.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m,
-                Client = invoice.Client != null ? new ClientDto
-                {
-                    Id = invoice.Client.Id,
-                    Company_Name = invoice.Client.Company_Name
-                } : null,
-                Status = invoice.Status != null ? new StatusDto
-                {
-                    Id = invoice.Status.Id,
-                    Name = invoice.Status.Name
-                } : null,
-                Items = invoice.Items?.Select(item => new InvoiceItemDto
-                {
-                    Id = item.Id,
-                    Description = item.Description,
-                    Unit_Price = item.Unit_Price,
-                    Quantity = item.Quantity
-                }).ToList() ?? new List<InvoiceItemDto>()
-            }).ToList();
-
-            return invoiceDtos;
+            var invoices = await _invoiceService.GetAllInvoicesAsync();
+            return Ok(invoices);
         }
 
-        [HttpGet("{id}", Name = "get-invoice-by-id")]
-        public async Task<Invoice> GetInvoiceById(Guid id)
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(Invoice), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Invoice>> GetInvoiceById(Guid id)
         {
-            var invoice = await _db.Invoices
-                .Include(i => i.Items)
-                .Include(i => i.Client)
-                .FirstOrDefaultAsync(i => i.Id == id);
-
-            if (invoice != null)
-            {
-                invoice.Total = invoice.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m;
-            }
-
-            return invoice;
-        }
-
-        [HttpPost("add", Name = "add-invoice")]
-        public async Task SaveInvoice(Invoice invoice)
-        {
-            var existingInvoice = await _db.Invoices
-                .Include(i => i.Items)
-                .FirstOrDefaultAsync(i => i.Id == invoice.Id);
-
-            if (existingInvoice == null)
-            {
-                _db.Invoices.Add(invoice);
-            }
-            else
-            {
-                _db.Entry(existingInvoice).CurrentValues.SetValues(invoice);
-
-                if (existingInvoice.Client != null && invoice.Client != null)
-                {
-                    _db.Entry(existingInvoice.Client).CurrentValues.SetValues(invoice.Client);
-                }
-
-                foreach (var existingItem in existingInvoice.Items.ToList())
-                {
-                    if (!invoice.Items.Any(i => i.Id == existingItem.Id))
-                    {
-                        _db.Remove(existingItem);
-                    }
-                }
-
-                foreach (var item in invoice.Items)
-                {
-                    var existingItem = existingInvoice.Items.FirstOrDefault(i => i.Id == item.Id);
-                    if (existingItem == null)
-                    {
-                        existingInvoice.Items.Add(item);
-                    }
-                    else
-                    {
-                        _db.Entry(existingItem).CurrentValues.SetValues(item);
-                    }
-                }
-            }
-
-            await _db.SaveChangesAsync();
-        }
-
-        [HttpDelete("{id}", Name = "delete-invoice")]
-        public async Task DeleteInvoice(Guid id)
-        {
-            var invoice = await _db.Invoices
-                .Include(i => i.Items)
-                .FirstOrDefaultAsync(i => i.Id == id);
+            var invoice = await _invoiceService.GetInvoiceByIdAsync(id);
 
             if (invoice == null)
-                throw new KeyNotFoundException("Invoice not found");
-
-            if (invoice.Items != null)
             {
-                _db.Invoice_Items.RemoveRange(invoice.Items);
+                return NotFound(new { message = $"Invoice with ID {id} not found." });
             }
 
-            _db.Invoices.Remove(invoice);
-            await _db.SaveChangesAsync();
+            return Ok(invoice);
+        }
+
+        [HttpPost("add")]
+        [ProducesResponseType(typeof(Invoice), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<Invoice>> CreateInvoice([FromBody] Invoice invoice)
+        {
+            try
+            {
+                var createdInvoice = await _invoiceService.CreateInvoiceAsync(invoice);
+                return CreatedAtAction(
+                    nameof(GetInvoiceById),
+                    new { id = createdInvoice.Id },
+                    createdInvoice
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(Invoice), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<Invoice>> UpdateInvoice(Guid id, [FromBody] Invoice invoice)
+        {
+            try
+            {
+                var updatedInvoice = await _invoiceService.UpdateInvoiceAsync(id, invoice);
+                return Ok(updatedInvoice);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteInvoice(Guid id)
+        {
+            var deleted = await _invoiceService.DeleteInvoiceAsync(id);
+
+            if (!deleted)
+            {
+                return NotFound(new { message = $"Invoice with ID {id} not found." });
+            }
+
+            return NoContent();
         }
 
         [HttpGet("next-inv-number")]
-        public async Task<string> GetNextInvoiceNumber()
+        [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+        public async Task<ActionResult<string>> GetNextInvoiceNumber()
         {
-            var currentYear = DateTime.Now.Year;
-
-            var lastInvoice = await _db.Invoices
-                .Where(i => i.Number.StartsWith($"INV-{currentYear}-"))
-                .OrderByDescending(i => i.Number)
-                .FirstOrDefaultAsync();
-
-            int nextNumber = 1;
-
-            if (lastInvoice != null)
-            {
-                var parts = lastInvoice.Number.Split('-');
-                if (parts.Length == 3 && int.TryParse(parts[2], out int lastNumber))
-                {
-                    nextNumber = lastNumber + 1;
-                }
-            }
-
-            return $"INV-{currentYear}-{nextNumber.ToString("D3")}";
+            var number = await _invoiceService.GenerateNextInvoiceNumberAsync();
+            return Ok(number);
         }
 
         [HttpGet("summary")]
-        public async Task<List<InvoiceSummaryVM>> GetInvoiceSummary()
+        [ProducesResponseType(typeof(List<InvoiceSummaryVM>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<InvoiceSummaryVM>>> GetInvoiceSummary()
         {
-            var invoices = await _db.Invoices
-                .Include(i => i.Items)
-                .Where(i => i.Issue_Date.HasValue)
-                .ToListAsync();
-
-            var summaries = invoices
-                .Select(i => new
-                {
-                    Year = i.Issue_Date.Value.Year,
-                    Month = i.Issue_Date.Value.Month,
-                    Total = i.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m
-                })
-                .ToList();
-
-            var monthlyTotals = summaries
-                .GroupBy(x => new { x.Year, x.Month })
-                .Select(g => new InvoiceSummaryVM
-                {
-                    Year = g.Key.Year,
-                    Month = g.Key.Month,
-                    Total = g.Sum(x => x.Total)
-                });
-
-            var yearlyTotals = summaries
-                .GroupBy(x => x.Year)
-                .Select(g => new InvoiceSummaryVM
-                {
-                    Year = g.Key,
-                    Month = null,
-                    Total = g.Sum(x => x.Total)
-                });
-
-            return monthlyTotals.Concat(yearlyTotals).OrderBy(x => x.Year).ThenBy(x => x.Month ?? 0).ToList();
+            var summary = await _invoiceService.GetInvoiceSummaryAsync();
+            return Ok(summary);
         }
     }
 }

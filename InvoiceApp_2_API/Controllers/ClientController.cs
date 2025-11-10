@@ -1,7 +1,5 @@
-﻿using MyInvoiceApp_API.Data;
-using MyInvoiceApp.Shared.Model;
+﻿using MyInvoiceApp_API.Services.Interfaces;
 using MyInvoiceApp.Shared.ViewModel;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MyInvoiceApp_API.Controller
@@ -10,43 +8,34 @@ namespace MyInvoiceApp_API.Controller
     [Route("api/client")]
     public class ClientController : ControllerBase
     {
-        private readonly AppDbContext _db;
+        private readonly IClientService _clientService;
 
-        public ClientController(AppDbContext db)
+        public ClientController(IClientService clientService)
         {
-            _db = db;
+            _clientService = clientService;
         }
 
         [HttpGet("all-clients")]
-        public async Task<List<ClientVM>> GetAllClients()
+        [ProducesResponseType(typeof(List<ClientVM>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<ClientVM>>> GetAllClients()
         {
-            return await _db.Clients
-                .Select(client => new ClientVM
-                {
-                    Id = client.Id,
-                    Company_Name = client.Company_Name,
-                    Email = client.Email,
-                    Phone = client.Phone,
-                    Address = client.Address
-                }).ToListAsync();
+            var clients = await _clientService.GetAllClientsAsync();
+            return Ok(clients);
         }
 
         [HttpGet("{id}")]
-        public async Task<ClientVM> GetClientById(Guid id)
+        [ProducesResponseType(typeof(ClientVM), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ClientVM>> GetClientById(Guid id)
         {
-            var client = await _db.Clients
-                .FirstOrDefaultAsync(x => x.Id == id);
+            var client = await _clientService.GetClientByIdAsync(id);
+
             if (client == null)
             {
-                return null;
+                return NotFound(new { message = $"Client with ID {id} not found." });
             }
-            return new ClientVM
-            {
-                Company_Name = client.Company_Name,
-                Email = client.Email,
-                Phone = client.Phone,
-                Address = client.Address
-            };
+
+            return Ok(client);
         }
     }
 }
