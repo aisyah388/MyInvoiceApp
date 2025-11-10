@@ -1,4 +1,5 @@
 ﻿@page "/invoice/add"
+@using static MyInvoiceApp_Shared.DTO.Validation
 
 <MudText Typo="Typo.h4">Add New Invoice</MudText>
 <MudGrid>
@@ -23,29 +24,37 @@
                     </MudItem>
                     <MudItem xs="8">
                         <MudAutocomplete T="StatusVM"
-                        Label="Search Status"
-                        SearchFunc="SearchStatus"
-                        ToStringFunc="status => status.Name"
-                        Adornment="Adornment.End"
-                        AdornmentIcon="@Icons.Material.Filled.Search"
-                        ResetValueOnEmptyText="true"
-                        CoerceText="true"
-                        ValueChanged="OnStatusSelected"
-                        Variant="Variant.Outlined" />
+                                         Label="Search Status"
+                                         SearchFunc="SearchStatus"
+                                         ToStringFunc="status => status.Name"
+                                         Adornment="Adornment.End"
+                                         AdornmentIcon="@Icons.Material.Filled.Search"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         ValueChanged="OnStatusSelected"
+                                         Variant="Variant.Outlined"
+                                         Error="@(!string.IsNullOrEmpty(GetErrorForField("Status_Id")))"
+                                         ErrorText="@GetErrorForField("Status_Id")" />
                     </MudItem>
 
                     <MudItem xs="4">
                         <MudText Typo="Typo.body1">Issue Date</MudText>
                     </MudItem>
                     <MudItem xs="8">
-                        <MudDatePicker @bind-Date="@invoice.Issue_Date" Variant="Variant.Outlined"/>
+                        <MudDatePicker @bind-Date="@invoice.Issue_Date"
+                                       Variant="Variant.Outlined"
+                                       Error="@(!string.IsNullOrEmpty(GetErrorForField("Issue_Date")))"
+                                       ErrorText="@GetErrorForField("Issue_Date")" />
                     </MudItem>
 
                     <MudItem xs="4">
                         <MudText Typo="Typo.body1">Due Date</MudText>
                     </MudItem>
                     <MudItem xs="8">
-                        <MudDatePicker @bind-Date="@invoice.Due_Date" Variant="Variant.Outlined" />
+                        <MudDatePicker @bind-Date="@invoice.Due_Date"
+                                       Variant="Variant.Outlined"
+                                       Error="@(!string.IsNullOrEmpty(GetErrorForField("Due_Date")))"
+                                       ErrorText="@GetErrorForField("Due_Date")" />
                     </MudItem>
                 </MudGrid>
             </MudCardContent>
@@ -65,15 +74,17 @@
                     </MudItem>
                     <MudItem xs="8">
                         <MudAutocomplete T="ClientVM"
-                        Label="Search Client"
-                        SearchFunc="SearchClients"
-                        ToStringFunc="client => client?.Company_Name"
-                        Adornment="Adornment.End"
-                        AdornmentIcon="@Icons.Material.Filled.Search"
-                        ResetValueOnEmptyText="true"
-                        CoerceText="true"
-                        ValueChanged="OnClientSelected"
-                        Variant="Variant.Outlined" />
+                                         Label="Search Client"
+                                         SearchFunc="SearchClients"
+                                         ToStringFunc="client => client?.Company_Name"
+                                         Adornment="Adornment.End"
+                                         AdornmentIcon="@Icons.Material.Filled.Search"
+                                         ResetValueOnEmptyText="true"
+                                         CoerceText="true"
+                                         ValueChanged="OnClientSelected"
+                                         Error="@(!string.IsNullOrEmpty(GetErrorForField("Client_Id")))"
+                                         ErrorText="@GetErrorForField("Client_Id")"
+                                         Variant="Variant.Outlined" />
                     </MudItem>
 
                     <MudItem xs="4">
@@ -101,6 +112,13 @@
         </MudCard>
     </MudItem>
     <MudItem xs="12">
+        <!-- ERROR DISPLAY FOR ITEMS -->
+        @if (!string.IsNullOrEmpty(GetErrorForField("Items")))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">
+                @GetErrorForField("Items")
+            </MudAlert>
+        }
         <MudCard Style="padding-bottom: 1rem;">
             <MudCardHeader>
                 <CardHeaderContent>
@@ -176,9 +194,12 @@
     private Invoice_Item invoice_Item = new();
     private List<ClientVM> clientList = new();
     private List<StatusVM> statusList = new();
-    private ClientVM selectedClient = new(); 
+    private ClientVM selectedClient = new();
     private decimal taxRate = 0;
     private decimal delivery = 0;
+
+    // Store validation errors
+    private Dictionary<string, string> validationErrors = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -187,9 +208,9 @@
         invoice.Number = await Http.GetStringAsync("api/invoice/next-inv-number");
 
         invoice.Items = new List<Invoice_Item>
-    {
-        new Invoice_Item { Quantity = 1, Unit_Price = 0 }
-    };
+        {
+            new Invoice_Item { Quantity = 1, Unit_Price = 0 }
+        };
     }
 
     private void AddNewInvoiceItem()
@@ -204,13 +225,40 @@
 
     private async Task AddNewInvoice()
     {
+        // Clear previous errors
+        validationErrors.Clear();
+
         try
         {
             var response = await Http.PostAsJsonAsync("api/invoice/add", invoice);
+
             if (response.IsSuccessStatusCode)
             {
                 Snackbar.Add("Invoice saved successfully.", Severity.Success);
                 Navigation.NavigateTo("/invoice/list");
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.BadRequest)
+            {
+                // Parse validation errors
+                var errorResponse = await response.Content.ReadFromJsonAsync<ErrorResponse>();
+
+                if (errorResponse?.Errors != null && errorResponse.Errors.Any())
+                {
+                    // Store errors in dictionary for display
+                    foreach (var error in errorResponse.Errors)
+                    {
+                        validationErrors[error.Property] = error.Error;
+                    }
+
+                    // Show summary in snackbar
+                    Snackbar.Add($"Please fill all required fields.", Severity.Error);
+                }
+                else
+                {
+                    // Fallback if errors array is empty
+                    var rawError = await response.Content.ReadAsStringAsync();
+                    Snackbar.Add($"Validation failed: {rawError}", Severity.Error);
+                }
             }
             else
             {
@@ -257,6 +305,11 @@
         if (status is null) return;
 
         invoice.Status_Id = status.Id;
+    }
+
+    private string GetErrorForField(string fieldName)
+    {
+        return validationErrors.ContainsKey(fieldName) ? validationErrors[fieldName] : null;
     }
 
     private decimal subTotal => invoice.Items.Sum(i => i.Quantity * i.Unit_Price);

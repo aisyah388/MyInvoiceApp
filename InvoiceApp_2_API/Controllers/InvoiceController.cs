@@ -3,6 +3,7 @@ using MyInvoiceApp.Shared.Model;
 using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;
 using Microsoft.AspNetCore.Mvc;
+using FluentValidation;
 
 namespace MyInvoiceApp_API.Controller
 {
@@ -54,9 +55,17 @@ namespace MyInvoiceApp_API.Controller
                     createdInvoice
                 );
             }
-            catch (InvalidOperationException ex)
+            catch (ValidationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = "Validation failed",
+                    errors = ex.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        error = e.ErrorMessage
+                    })
+                });
             }
         }
 
@@ -75,9 +84,17 @@ namespace MyInvoiceApp_API.Controller
             {
                 return NotFound(new { message = ex.Message });
             }
-            catch (InvalidOperationException ex)
+            catch (ValidationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new
+                {
+                    message = "Validation failed",
+                    errors = ex.Errors.Select(e => new
+                    {
+                        property = e.PropertyName,
+                        error = e.ErrorMessage
+                    })
+                });
             }
         }
 

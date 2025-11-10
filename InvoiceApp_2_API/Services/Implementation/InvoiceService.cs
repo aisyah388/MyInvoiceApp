@@ -4,16 +4,19 @@ using MyInvoiceApp.Shared.Model;
 using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;
 using Microsoft.EntityFrameworkCore;
+using FluentValidation;
 
 namespace MyInvoiceApp_API.Services.Implementation
 {
     public class InvoiceService : IInvoiceService
     {
         private readonly AppDbContext _context;
+        private readonly IValidator<Invoice> _validator;
 
-        public InvoiceService(AppDbContext context)
+        public InvoiceService(AppDbContext context, IValidator<Invoice> validator)
         {
             _context = context;
+            _validator = validator;
         }
 
         public async Task<List<InvoiceDto>> GetAllInvoicesAsync()
@@ -23,7 +26,7 @@ namespace MyInvoiceApp_API.Services.Implementation
                 .Include(i => i.Client)
                 .Include(i => i.Status)
                 .OrderByDescending(i => i.Issue_Date)
-                .AsNoTracking() // Read-only optimization
+                .AsNoTracking()
                 .ToListAsync();
 
             return invoices.Select(MapToDto).ToList();
@@ -46,27 +49,15 @@ namespace MyInvoiceApp_API.Services.Implementation
 
         public async Task<Invoice> CreateInvoiceAsync(Invoice invoice)
         {
-            // Invoice must have at least one item
-            if (invoice.Items == null || !invoice.Items.Any())
+            // Validate using FluentValidation
+            var validationResult = await _validator.ValidateAsync(invoice);
+            if (!validationResult.IsValid)
             {
-                throw new InvalidOperationException("Invoice must contain at least one item.");
-            }
-
-            // Due date cannot be before issue date
-            if (invoice.Due_Date.HasValue && invoice.Issue_Date.HasValue
-                && invoice.Due_Date < invoice.Issue_Date)
-            {
-                throw new InvalidOperationException("Due date cannot be before issue date.");
-            }
-
-            // All items must have positive quantity and price
-            if (invoice.Items.Any(i => i.Quantity <= 0 || i.Unit_Price < 0))
-            {
-                throw new InvalidOperationException("All items must have positive quantity and non-negative price.");
+                throw new ValidationException(validationResult.Errors);
             }
 
             invoice.Id = Guid.NewGuid();
-
+            
             _context.Invoices.Add(invoice);
             await _context.SaveChangesAsync();
 
@@ -84,30 +75,21 @@ namespace MyInvoiceApp_API.Services.Implementation
                 throw new KeyNotFoundException($"Invoice with ID {id} not found.");
             }
 
-            // Apply same business rules as Create
-            if (invoice.Items == null || !invoice.Items.Any())
+            // Validate using FluentValidation
+            var validationResult = await _validator.ValidateAsync(invoice);
+            if (!validationResult.IsValid)
             {
-                throw new InvalidOperationException("Invoice must contain at least one item.");
+                throw new ValidationException(validationResult.Errors);
             }
 
-            if (invoice.Due_Date.HasValue && invoice.Issue_Date.HasValue
-                && invoice.Due_Date < invoice.Issue_Date)
-            {
-                throw new InvalidOperationException("Due date cannot be before issue date.");
-            }
-
-            if (invoice.Items.Any(i => i.Quantity <= 0 || i.Unit_Price < 0))
-            {
-                throw new InvalidOperationException("All items must have positive quantity and non-negative price.");
-            }
-
+            // Update invoice properties
             existingInvoice.Number = invoice.Number;
             existingInvoice.Client_Id = invoice.Client_Id;
             existingInvoice.Status_Id = invoice.Status_Id;
             existingInvoice.Issue_Date = invoice.Issue_Date;
             existingInvoice.Due_Date = invoice.Due_Date;
 
-            // Handle items - remove old, add/update new
+            // Handle items - remove old, add new
             _context.Invoice_Items.RemoveRange(existingInvoice.Items);
             existingInvoice.Items = invoice.Items;
 
@@ -127,7 +109,6 @@ namespace MyInvoiceApp_API.Services.Implementation
                 return false;
             }
 
-            // Cascade delete items
             if (invoice.Items != null && invoice.Items.Any())
             {
                 _context.Invoice_Items.RemoveRange(invoice.Items);
