@@ -76,7 +76,7 @@
                         <MudAutocomplete T="ClientVM"
                                          Label="Search Client"
                                          SearchFunc="SearchClients"
-                                         ToStringFunc="client => client?.Company_Name"
+                                         ToStringFunc="client => client?.Name"
                                          Adornment="Adornment.End"
                                          AdornmentIcon="@Icons.Material.Filled.Search"
                                          ResetValueOnEmptyText="true"
@@ -276,7 +276,7 @@
     {
         IEnumerable<ClientVM> result = string.IsNullOrWhiteSpace(value)
             ? clientList
-            : clientList.Where(x => x.Company_Name.Contains(value, StringComparison.OrdinalIgnoreCase));
+            : clientList.Where(x => x.Name.Contains(value, StringComparison.OrdinalIgnoreCase));
 
         return Task.FromResult(result);
     }

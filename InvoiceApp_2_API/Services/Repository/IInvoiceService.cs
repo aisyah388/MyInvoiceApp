@@ -6,7 +6,7 @@ namespace MyInvoiceApp_API.Services.Repository
 {
     public interface IInvoiceService
     {
-        Task<List<InvoiceDto>> GetAllInvoicesAsync();
+        Task<List<InvoiceVM>> GetAllInvoicesAsync();
         Task<Invoice?> GetInvoiceByIdAsync(Guid id);
         Task<Invoice> CreateInvoiceAsync(Invoice invoice);
         Task<Invoice> UpdateInvoiceAsync(Guid id, Invoice invoice);

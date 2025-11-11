@@ -1,4 +1,4 @@
-﻿using MyInvoiceApp_API.Services.Interfaces;
+﻿using MyInvoiceApp_API.Services.Repository;
 using MyInvoiceApp.Shared.Model;
 using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;
@@ -19,8 +19,8 @@ namespace MyInvoiceApp_API.Controller
         }
 
         [HttpGet("all-invoices")]
-        [ProducesResponseType(typeof(List<InvoiceDto>), StatusCodes.Status200OK)]
-        public async Task<ActionResult<List<InvoiceDto>>> GetAllInvoices()
+        [ProducesResponseType(typeof(List<InvoiceVM>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<InvoiceVM>>> GetAllInvoices()
         {
             var invoices = await _invoiceService.GetAllInvoicesAsync();
             return Ok(invoices);

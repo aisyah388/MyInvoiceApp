@@ -7,13 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Components\Pages\User\**" />
-    <Content Remove="Components\Pages\User\**" />
-    <EmbeddedResource Remove="Components\Pages\User\**" />
-    <None Remove="Components\Pages\User\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Highsoft.Highcharts" Version="11.4.6.5" />
     <PackageReference Include="MudBlazor" Version="8.6.0" />
   </ItemGroup>

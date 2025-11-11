@@ -1,5 +1,5 @@
 ﻿@page "/invoice/list"
-@using MyInvoiceApp_Shared.DTO
+@using MyInvoiceApp_Shared.ViewModel
 
 <MudText Typo="Typo.h4" Class="mb-4">Invoice List</MudText>
 
@@ -24,7 +24,7 @@
     <RowTemplate Context="invoice">
         <MudTd>@invoice.Number</MudTd>
         <MudTd>@invoice.Issue_Date?.ToString("dd/MM/yyyy")</MudTd>
-        <MudTd>@invoice.Client?.Company_Name</MudTd>
+        <MudTd>@invoice.Client?.Name</MudTd>
         <MudTd>@invoice.Due_Date?.ToString("dd/MM/yyyy")</MudTd>
         <MudTd>@invoice.Total.ToString("C")</MudTd>
         <MudTd>
@@ -53,13 +53,13 @@
 </MudTable>
 
 @code {
-    private List<InvoiceDto> invoicesList = new();
+    private List<InvoiceVM> invoicesList = new();
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            invoicesList = await Http.GetFromJsonAsync<List<InvoiceDto>>("api/invoice/all-invoices");
+            invoicesList = await Http.GetFromJsonAsync<List<InvoiceVM>>("api/invoice/all-invoices");
         }
         catch (Exception)
         {
@@ -67,17 +67,10 @@
         }
     }
 
-    private void AddNewInvoice()
-    {
-        Navigation.NavigateTo("/invoice/add");
-    }
+    private void AddNewInvoice() => Navigation.NavigateTo("/invoice/add");
+    private void EditInvoice(Guid id) => Navigation.NavigateTo($"/invoice/edit/{id}");
 
-    private void EditInvoice(Guid id)
-    {
-        Navigation.NavigateTo($"/invoice/edit/{id}");
-    }
-
-    private async Task ConfirmDelete(InvoiceDto invoice)
+    private async Task ConfirmDelete(InvoiceVM invoice)
     {
         bool? result = await DialogService.ShowMessageBox(
             title: "Confirm Delete",
@@ -88,9 +81,7 @@
         );
 
         if (result == true)
-        {
             await DeleteInvoice(invoice.Id);
-        }
     }
 
     private async Task DeleteInvoice(Guid id)
@@ -101,7 +92,7 @@
 
             if (response.IsSuccessStatusCode)
             {
-                invoicesList = await Http.GetFromJsonAsync<List<InvoiceDto>>("api/invoice/all-invoices");
+                invoicesList = await Http.GetFromJsonAsync<List<InvoiceVM>>("api/invoice/all-invoices");
                 Snackbar.Add("Invoice deleted successfully.", Severity.Success);
             }
             else
@@ -115,16 +106,13 @@
         }
     }
 
-    private Color GetChipColor(string status)
+    private Color GetChipColor(string status) => status.ToLower() switch
     {
-        return status.ToLower() switch
-        {
-            "paid" => Color.Success,
-            "unpaid" => Color.Error,
-            "pending" => Color.Warning,
-            "overdue" => Color.Secondary,
-            "partial" => Color.Info,
-            _ => Color.Dark
-        };
-    }
+        "paid" => Color.Success,
+        "unpaid" => Color.Error,
+        "pending" => Color.Warning,
+        "overdue" => Color.Secondary,
+        "partial" => Color.Info,
+        _ => Color.Dark
+    };
 }

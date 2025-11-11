@@ -7,7 +7,7 @@ namespace MyInvoiceApp_API.Validators
     {
         public ClientValidator()
         {
-            RuleFor(x => x.Company_Name)
+            RuleFor(x => x.Name)
                 .NotEmpty()
                 .WithMessage("Company name is required.")
                 .MaximumLength(200)

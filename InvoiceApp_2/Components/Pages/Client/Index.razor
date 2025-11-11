@@ -1,0 +1,118 @@
+﻿@page "/client/list"
+@using MyInvoiceApp_Shared.DTO
+
+<MudText Typo="Typo.h4" Class="mb-4">Client List</MudText>
+
+<MudTable Items="@clientList" Hover="true" Filterable="true" Sortable="true" Elevation="1" Bordered="true">
+    <ToolBarContent>
+        <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="AddNewClient">
+            Add New Client
+        </MudButton>
+        <MudSpacer />
+    </ToolBarContent>
+
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Address</MudTh>
+        <MudTh>Phone</MudTh>
+        <MudTh>Email</MudTh>
+    </HeaderContent>
+
+    <RowTemplate Context="client">
+        <MudTd>@client.Name</MudTd>
+        <MudTd>@client.Address</MudTd>
+        <MudTd>@client.Phone</MudTd>
+        <MudTd>@client.Email</MudTd>
+        <MudTd>
+            <MudStack Row Spacing="1">
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Edit" Color="Color.Primary" OnClick="@(() => EditClient(client.Id))">
+                    Edit
+                </MudButton>
+                <MudButton Size="Size.Small" Variant="Variant.Filled" StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => ConfirmDelete(client))">
+                    Delete
+                </MudButton>
+            </MudStack>
+        </MudTd>
+    </RowTemplate>
+
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    private List<Client> clientList = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            clientList = await Http.GetFromJsonAsync<List<Client>>("api/client/all-clients");
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to retrieve client list. Try again later.", Severity.Error);
+        }
+    }
+
+    private void AddNewClient()
+    {
+        Navigation.NavigateTo("/client/add");
+    }
+
+    private void EditClient(Guid id)
+    {
+        Navigation.NavigateTo($"/client/edit/{id}");
+    }
+
+    private async Task ConfirmDelete(Client client)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            title: "Confirm Delete",
+            markupMessage: (MarkupString)$"Are you sure you want to delete <b>{client.Name}</b>?",
+            yesText: "Delete",
+            noText: "Cancel",
+            options: new DialogOptions { CloseButton = true, MaxWidth = MaxWidth.Small, FullWidth = true }
+        );
+
+        if (result == true)
+        {
+            await DeleteClient(client.Id);
+        }
+    }
+
+    private async Task DeleteClient(Guid id)
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"api/invoice/{id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                clientList = await Http.GetFromJsonAsync<List<Client>>("api/client/all-clients");
+                Snackbar.Add("Invoice deleted successfully.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Failed to delete invoice.", Severity.Error);
+            }
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error occurred while deleting the invoice.", Severity.Error);
+        }
+    }
+
+    private Color GetChipColor(string status)
+    {
+        return status.ToLower() switch
+        {
+            "paid" => Color.Success,
+            "unpaid" => Color.Error,
+            "pending" => Color.Warning,
+            "overdue" => Color.Secondary,
+            "partial" => Color.Info,
+            _ => Color.Dark
+        };
+    }
+}

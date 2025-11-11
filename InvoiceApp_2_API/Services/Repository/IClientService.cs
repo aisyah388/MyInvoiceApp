@@ -1,4 +1,5 @@
-﻿using MyInvoiceApp.Shared.ViewModel;
+﻿using MyInvoiceApp.Shared.Model;
+using MyInvoiceApp.Shared.ViewModel;
 
 namespace MyInvoiceApp_API.Services.Repository
 {
@@ -6,5 +7,8 @@ namespace MyInvoiceApp_API.Services.Repository
     {
         Task<List<ClientVM>> GetAllClientsAsync();
         Task<ClientVM?> GetClientByIdAsync(Guid id);
+        Task<Client> CreateClientAsync(Client client);
+        Task<Client> UpdateClientAsync(Guid id, Client client);
+        Task<bool> DeleteClientAsync(Guid id);
     }
 }

@@ -5,6 +5,7 @@ using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;
 using Microsoft.EntityFrameworkCore;
 using FluentValidation;
+using MyInvoiceApp.Shared.ViewModel;
 
 namespace MyInvoiceApp_API.Services.Implementation
 {
@@ -19,7 +20,7 @@ namespace MyInvoiceApp_API.Services.Implementation
             _validator = validator;
         }
 
-        public async Task<List<InvoiceDto>> GetAllInvoicesAsync()
+        public async Task<List<InvoiceVM>> GetAllInvoicesAsync()
         {
             var invoices = await _context.Invoices
                 .Include(i => i.Items)
@@ -29,7 +30,7 @@ namespace MyInvoiceApp_API.Services.Implementation
                 .AsNoTracking()
                 .ToListAsync();
 
-            return invoices.Select(MapToDto).ToList();
+            return invoices.Select(MapToVM).ToList();
         }
 
         public async Task<Invoice?> GetInvoiceByIdAsync(Guid id)
@@ -192,32 +193,29 @@ namespace MyInvoiceApp_API.Services.Implementation
             return invoice.Items?.Sum(item => item.Unit_Price * item.Quantity) ?? 0m;
         }
 
-        private InvoiceDto MapToDto(Invoice invoice)
+        private InvoiceVM MapToVM(Invoice invoice)
         {
-            return new InvoiceDto
+            return new InvoiceVM
             {
                 Id = invoice.Id,
                 Number = invoice.Number,
                 Issue_Date = invoice.Issue_Date,
                 Due_Date = invoice.Due_Date,
                 Total = CalculateInvoiceTotal(invoice),
-                Client = invoice.Client != null ? new ClientDto
+                Client = invoice.Client != null ? new InvoiceClientVM
                 {
-                    Id = invoice.Client.Id,
-                    Company_Name = invoice.Client.Company_Name
+                    Name = invoice.Client.Name
                 } : null,
-                Status = invoice.Status != null ? new StatusDto
+                Status = invoice.Status != null ? new InvoiceStatusVM
                 {
-                    Id = invoice.Status.Id,
                     Name = invoice.Status.Name
                 } : null,
-                Items = invoice.Items?.Select(item => new InvoiceItemDto
+                Items = invoice.Items?.Select(item => new Invoice_ItemVM
                 {
-                    Id = item.Id,
                     Description = item.Description,
                     Unit_Price = item.Unit_Price,
                     Quantity = item.Quantity
-                }).ToList() ?? new List<InvoiceItemDto>()
+                }).ToList() ?? new List<Invoice_ItemVM>()
             };
         }
     }
