@@ -1,5 +1,4 @@
 ﻿using MyInvoiceApp.Shared.Model;
-using MyInvoiceApp_Shared.DTO;
 using MyInvoiceApp_Shared.ViewModel;
 
 namespace MyInvoiceApp_API.Services.Repository

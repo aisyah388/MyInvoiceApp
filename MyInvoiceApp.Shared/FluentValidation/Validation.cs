@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyInvoiceApp_Shared.DTO
+namespace MyInvoiceApp_Shared.FluentValidation
 {
     public class Validation
     {

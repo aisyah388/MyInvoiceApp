@@ -31,16 +31,25 @@ namespace MyInvoiceApp_API.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Company_Name")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<Guid>("Company_Id")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Phone")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long>("SSM_No")
+                        .HasColumnType("bigint");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("Company_Id");
 
                     b.ToTable("Clients");
                 });
@@ -52,6 +61,9 @@ namespace MyInvoiceApp_API.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("Client_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("Company_Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("Due_Date")
@@ -69,6 +81,8 @@ namespace MyInvoiceApp_API.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Client_Id");
+
+                    b.HasIndex("Company_Id");
 
                     b.HasIndex("Status_Id");
 
@@ -135,21 +149,85 @@ namespace MyInvoiceApp_API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("Company_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("Role_Id")
+                    b.Property<Guid>("Role_Id")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Username")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Company_Id");
+
+                    b.HasIndex("Role_Id");
+
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("MyInvoiceApp_Shared.Model.Company", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Phone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("SSM_No")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Companies");
+                });
+
+            modelBuilder.Entity("MyInvoiceApp.Shared.Model.Client", b =>
+                {
+                    b.HasOne("MyInvoiceApp_Shared.Model.Company", "Company")
+                        .WithMany("Clients")
+                        .HasForeignKey("Company_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("MyInvoiceApp.Shared.Model.Invoice", b =>
@@ -157,7 +235,13 @@ namespace MyInvoiceApp_API.Migrations
                     b.HasOne("MyInvoiceApp.Shared.Model.Client", "Client")
                         .WithMany()
                         .HasForeignKey("Client_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MyInvoiceApp_Shared.Model.Company", "Company")
+                        .WithMany("Invoices")
+                        .HasForeignKey("Company_Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("MyInvoiceApp.Shared.Model.Status", "Status")
@@ -165,6 +249,8 @@ namespace MyInvoiceApp_API.Migrations
                         .HasForeignKey("Status_Id");
 
                     b.Navigation("Client");
+
+                    b.Navigation("Company");
 
                     b.Navigation("Status");
                 });
@@ -180,9 +266,37 @@ namespace MyInvoiceApp_API.Migrations
                     b.Navigation("Invoice");
                 });
 
+            modelBuilder.Entity("MyInvoiceApp.Shared.Model.User", b =>
+                {
+                    b.HasOne("MyInvoiceApp_Shared.Model.Company", "Company")
+                        .WithMany("Users")
+                        .HasForeignKey("Company_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MyInvoiceApp.Shared.Model.Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("Role_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Company");
+
+                    b.Navigation("Role");
+                });
+
             modelBuilder.Entity("MyInvoiceApp.Shared.Model.Invoice", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("MyInvoiceApp_Shared.Model.Company", b =>
+                {
+                    b.Navigation("Clients");
+
+                    b.Navigation("Invoices");
+
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

@@ -6,6 +6,7 @@ using MyInvoiceApp_API.Data;
 using MyInvoiceApp_API.Services.Implementation;
 using MyInvoiceApp_API.Services.Repository;
 using MyInvoiceApp_API.Validators;
+using MyInvoiceApp_Shared.Model;
 using System;
 using System.Text.Json.Serialization;
 
