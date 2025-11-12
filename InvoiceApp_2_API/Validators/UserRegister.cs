@@ -35,7 +35,7 @@ namespace MyInvoiceApp_API.Validators
 
         }
 
-        private bool CheckSSMNoLength(int ssmNo)
+        private bool CheckSSMNoLength(long ssmNo)
         {
             return ssmNo.ToString().Length == 12;
         }

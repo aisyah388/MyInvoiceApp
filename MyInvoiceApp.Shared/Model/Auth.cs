@@ -11,7 +11,7 @@ namespace MyInvoiceApp_Shared.Model
         public string Name { get; set; }
         public string Email { get; set; }
         public string CompanyName { get; set; }
-        public int SSM_No { get; set; } 
+        public long SSM_No { get; set; } 
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
     }

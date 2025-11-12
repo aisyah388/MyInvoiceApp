@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+@using MudBlazor
+
+<MudThemeProvider Theme="MyCustomTheme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout >
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="d-flex justify-center align-center min-h-screen">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code{
+    MudTheme MyCustomTheme = new MudTheme()
+        {
+            Typography = new Typography()
+            {
+                Default = new DefaultTypography()
+                {
+                    FontFamily = new[] { "Inter", "sans-serif" },
+                    FontSize = "14px"
+                }
+            },
+            PaletteLight = new PaletteLight()
+            {
+                Background = Colors.DeepPurple.Default
+            }
+        };
+}

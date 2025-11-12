@@ -19,54 +19,57 @@ namespace MyInvoiceApp_API.Services.Implementation
             _validator = validator;
         }
 
-
-        public async Task<List<ClientVM>> GetAllClientsAsync()
+        // ✅ Filter by company
+        public async Task<List<ClientVM>> GetAllClientsAsync(Guid companyId)
         {
             return await _context.Clients
+                .Where(c => c.Company_Id == companyId) // filter here
                 .AsNoTracking()
+                .OrderBy(c => c.Name)
                 .Select(client => new ClientVM
                 {
                     Id = client.Id,
                     Name = client.Name,
+                    SSM_No = client.SSM_No,
                     Email = client.Email,
                     Phone = client.Phone,
                     Address = client.Address
                 })
-                .OrderBy(c => c.Name)
                 .ToListAsync();
         }
 
-        public async Task<ClientVM?> GetClientByIdAsync(Guid id)
+        // ✅ Filter by company
+        public async Task<ClientVM?> GetClientByIdAsync(Guid id, Guid companyId)
         {
             var client = await _context.Clients
+                .Where(c => c.Company_Id == companyId)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(x => x.Id == id);
 
             if (client == null)
-            {
                 return null;
-            }
 
             return new ClientVM
             {
                 Id = client.Id,
                 Name = client.Name,
+                SSM_No = client.SSM_No,
                 Email = client.Email,
                 Phone = client.Phone,
                 Address = client.Address
             };
         }
 
-        public async Task<Client> CreateClientAsync(Client client)
+        // ✅ Assign company on creation
+        public async Task<Client> CreateClientAsync(Client client, Guid companyId)
         {
             // Validate using FluentValidation
             var validationResult = await _validator.ValidateAsync(client);
             if (!validationResult.IsValid)
-            {
                 throw new ValidationException(validationResult.Errors);
-            }
 
             client.Id = Guid.NewGuid();
+            client.Company_Id = companyId; // attach company here
 
             _context.Clients.Add(client);
             await _context.SaveChangesAsync();
@@ -74,47 +77,41 @@ namespace MyInvoiceApp_API.Services.Implementation
             return client;
         }
 
-        public async Task<Client> UpdateClientAsync(Guid id, Client client)
+        // ✅ Update with company validation
+        public async Task<Client> UpdateClientAsync(Guid id, Client client, Guid companyId)
         {
             var existingClient = await _context.Clients
+                .Where(c => c.Company_Id == companyId)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (existingClient == null)
-            {
-                throw new KeyNotFoundException($"Client name: {client.Name} not found.");
-            }
+                throw new KeyNotFoundException($"Client not found for company {companyId}.");
 
-            // Validate using FluentValidation
             var validationResult = await _validator.ValidateAsync(client);
             if (!validationResult.IsValid)
-            {
                 throw new ValidationException(validationResult.Errors);
-            }
 
-            // Update client properties
             existingClient.Name = client.Name;
             existingClient.Address = client.Address;
             existingClient.Phone = client.Phone;
             existingClient.Email = client.Email;
 
             await _context.SaveChangesAsync();
-
             return existingClient;
         }
 
-        public async Task<bool> DeleteClientAsync(Guid id)
+        // ✅ Delete with company validation
+        public async Task<bool> DeleteClientAsync(Guid id, Guid companyId)
         {
             var client = await _context.Clients
+                .Where(c => c.Company_Id == companyId)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (client == null)
-            {
                 return false;
-            }
 
             _context.Clients.Remove(client);
             await _context.SaveChangesAsync();
-
             return true;
         }
     }

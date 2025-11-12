@@ -5,10 +5,10 @@ namespace MyInvoiceApp_API.Services.Repository
 {
     public interface IClientService
     {
-        Task<List<ClientVM>> GetAllClientsAsync();
-        Task<ClientVM?> GetClientByIdAsync(Guid id);
-        Task<Client> CreateClientAsync(Client client);
-        Task<Client> UpdateClientAsync(Guid id, Client client);
-        Task<bool> DeleteClientAsync(Guid id);
+        Task<List<ClientVM>> GetAllClientsAsync(Guid companyId);
+        Task<ClientVM?> GetClientByIdAsync(Guid id, Guid companyId);
+        Task<Client> CreateClientAsync(Client client, Guid companyId);
+        Task<Client> UpdateClientAsync(Guid id, Client client, Guid companyId);
+        Task<bool> DeleteClientAsync(Guid id, Guid companyId);
     }
 }

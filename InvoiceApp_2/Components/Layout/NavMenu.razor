@@ -1,4 +1,10 @@
-﻿<MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AlignVerticalBottom">Dashboard</MudNavLink>
-<MudNavLink Href="/invoice/list" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Description">Invoice</MudNavLink>
-<MudNavLink Href="/client/list" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CorporateFare">Client</MudNavLink>
-@* <MudNavLink Href="/" Match="NavLinkMatch.All"  Icon="@Icons.Material.Filled.Tune">Settings</MudNavLink> *@
+﻿<AuthorizeView>
+    <Authorized>
+        <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AlignVerticalBottom">Dashboard</MudNavLink>
+        <MudNavLink Href="/invoice/list" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Description">Invoice</MudNavLink>
+        <MudNavLink Href="/client/list" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.CorporateFare">Client</MudNavLink>
+        @* <MudNavLink Href="/" Match="NavLinkMatch.All"  Icon="@Icons.Material.Filled.Tune">Settings</MudNavLink> *@
+    </Authorized>
+    <NotAuthorized>
+    </NotAuthorized>
+</AuthorizeView>

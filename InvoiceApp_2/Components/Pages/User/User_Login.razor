@@ -1,0 +1,98 @@
+﻿@page "/"
+@layout Layout.AuthLayout
+@using MyInvoiceApp_Shared.Model
+@using MyInvoiceApp.Auth
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthStateProvider
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-16">
+    <MudPaper Elevation="3" Class="pa-8">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            Login
+        </MudText>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="my-4">@errorMessage</MudAlert>
+        }
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" FormName="LoginForm">
+            <MudTextField @bind-Value="loginModel.Username"
+                          Label="Username"
+                          Variant="Variant.Outlined"
+                          Class="my-4" />
+            <MudTextField @bind-Value="loginModel.Password"
+                          Label="Password"
+                          Variant="Variant.Outlined"
+                          Class="my-4"
+                          InputType="InputType.Password" />
+            <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       FullWidth="true"
+                       Size="Size.Large"
+                       Disabled="isLoading">
+                @if (isLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </MudButton>
+            <MudDivider Class="my-6" />
+            <MudText Align="Align.Center">
+                Don't have an account?
+                <MudLink Href="/user/register" Color="Color.Primary">Register here</MudLink>
+            </MudText>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private Login loginModel = new();
+    private string errorMessage = string.Empty;
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+        isLoading = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", loginModel);
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (result != null && !string.IsNullOrEmpty(result.Token))
+                {
+                    // Mark user as authenticated
+                    await AuthStateProvider.MarkUserAsAuthenticated(result.Token);
+
+                    // Wait a bit for the state to propagate
+                    await Task.Delay(100);
+
+                    // Navigate WITHOUT forcing a reload
+                    Navigation.NavigateTo("/dashboard", forceLoad: false);
+                }
+                else
+                {
+                    errorMessage = "No token received from server";
+                }
+            }
+            else
+            {
+                errorMessage = "Invalid username or password";
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Login error: {ex.Message}");
+            errorMessage = "An error occurred. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

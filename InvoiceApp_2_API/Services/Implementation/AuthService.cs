@@ -78,6 +78,7 @@ namespace MyInvoiceApp_API.Services.Implementation
                 {
                     Id = Guid.NewGuid(),
                     Username = request.Email.Split('@')[0], // Use email prefix as username
+                    Email = request.Email,
                     Name = request.Name,
                     PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                     Company_Id = company.Id,
@@ -163,6 +164,7 @@ namespace MyInvoiceApp_API.Services.Implementation
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Email, user.Email),
                 new Claim(ClaimTypes.Role, user.Role?.Name ?? "User"),
+                new Claim("companyName", user.Company?.Name ?? string.Empty),
                 new Claim("CompanyId", user.Company_Id.ToString())
             };
 

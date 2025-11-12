@@ -5,12 +5,12 @@ namespace MyInvoiceApp_API.Services.Repository
 {
     public interface IInvoiceService
     {
-        Task<List<InvoiceVM>> GetAllInvoicesAsync();
-        Task<Invoice?> GetInvoiceByIdAsync(Guid id);
+        Task<List<InvoiceVM>> GetAllInvoicesAsync(Guid companyId);
+        Task<Invoice?> GetInvoiceByIdAsync(Guid id, Guid companyId);
         Task<Invoice> CreateInvoiceAsync(Invoice invoice);
-        Task<Invoice> UpdateInvoiceAsync(Guid id, Invoice invoice);
-        Task<bool> DeleteInvoiceAsync(Guid id);
-        Task<string> GenerateNextInvoiceNumberAsync();
-        Task<List<InvoiceSummaryVM>> GetInvoiceSummaryAsync();
+        Task<Invoice> UpdateInvoiceAsync(Guid id, Invoice invoice, Guid companyId);
+        Task<bool> DeleteInvoiceAsync(Guid id, Guid companyId);
+        Task<string> GenerateNextInvoiceNumberAsync(Guid companyId);
+        Task<List<InvoiceSummaryVM>> GetInvoiceSummaryAsync(Guid companyId);
     }
 }

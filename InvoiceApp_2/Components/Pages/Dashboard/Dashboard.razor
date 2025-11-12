@@ -1,23 +1,34 @@
-﻿@page "/"
+﻿@page "/dashboard"
 @using MyInvoiceApp_Shared.ViewModel
+@inject HttpClient Http
+@inject NavigationManager Navigation
 
-<MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
+<AuthorizeView>
+    <Authorized>
+        <MudText Typo="Typo.h4" Class="mb-4">Dashboard .</MudText>
 
-@if (summaryData == null && statusData == null)
-{
-    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
-}
-else
-{
-    <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
-        <div style="flex: 1; height: 400px;">
-            <MyInvoiceApp.Components.Pages.Chart.Invoice.Monthly SummaryData="summaryData" />
-        </div>
-        <div style="flex: 1; height: 400px;">
-            <MyInvoiceApp.Components.Pages.Chart.Invoice.Status StatusSummaries="statusData" />
-        </div>
-    </div>
-}
+        @if (summaryData == null && statusData == null)
+        {
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+        }
+        else
+        {
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem;">
+                <div style="flex: 1; height: 400px;">
+                    <MyInvoiceApp.Components.Pages.Chart.Invoice.Monthly SummaryData="summaryData" />
+                </div>
+                <div style="flex: 1; height: 400px;">
+                    <MyInvoiceApp.Components.Pages.Chart.Invoice.Status StatusSummaries="statusData" />
+                </div>
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        @{
+            Navigation.NavigateTo("/", true);
+        }
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private List<InvoiceSummaryVM>? summaryData;

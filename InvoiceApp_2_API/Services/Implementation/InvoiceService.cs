@@ -19,12 +19,13 @@ namespace MyInvoiceApp_API.Services.Implementation
             _validator = validator;
         }
 
-        public async Task<List<InvoiceVM>> GetAllInvoicesAsync()
+        public async Task<List<InvoiceVM>> GetAllInvoicesAsync(Guid companyId)
         {
             var invoices = await _context.Invoices
                 .Include(i => i.Items)
                 .Include(i => i.Client)
                 .Include(i => i.Status)
+                .Where(i => i.Company_Id == companyId) // Filter by company
                 .OrderByDescending(i => i.Issue_Date)
                 .AsNoTracking()
                 .ToListAsync();
@@ -32,11 +33,12 @@ namespace MyInvoiceApp_API.Services.Implementation
             return invoices.Select(MapToVM).ToList();
         }
 
-        public async Task<Invoice?> GetInvoiceByIdAsync(Guid id)
+        public async Task<Invoice?> GetInvoiceByIdAsync(Guid id, Guid companyId)
         {
             var invoice = await _context.Invoices
                 .Include(i => i.Items)
                 .Include(i => i.Client)
+                .Where(i => i.Company_Id == companyId) // Filter by company
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (invoice != null)
@@ -57,17 +59,18 @@ namespace MyInvoiceApp_API.Services.Implementation
             }
 
             invoice.Id = Guid.NewGuid();
-            
+
             _context.Invoices.Add(invoice);
             await _context.SaveChangesAsync();
 
             return invoice;
         }
 
-        public async Task<Invoice> UpdateInvoiceAsync(Guid id, Invoice invoice)
+        public async Task<Invoice> UpdateInvoiceAsync(Guid id, Invoice invoice, Guid companyId)
         {
             var existingInvoice = await _context.Invoices
                 .Include(i => i.Items)
+                .Where(i => i.Company_Id == companyId) // Filter by company
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (existingInvoice == null)
@@ -98,10 +101,11 @@ namespace MyInvoiceApp_API.Services.Implementation
             return existingInvoice;
         }
 
-        public async Task<bool> DeleteInvoiceAsync(Guid id)
+        public async Task<bool> DeleteInvoiceAsync(Guid id, Guid companyId)
         {
             var invoice = await _context.Invoices
                 .Include(i => i.Items)
+                .Where(i => i.Company_Id == companyId) // Filter by company
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (invoice == null)
@@ -120,13 +124,13 @@ namespace MyInvoiceApp_API.Services.Implementation
             return true;
         }
 
-        public async Task<string> GenerateNextInvoiceNumberAsync()
+        public async Task<string> GenerateNextInvoiceNumberAsync(Guid companyId)
         {
             var currentYear = DateTime.UtcNow.Year;
             var prefix = $"INV-{currentYear}-";
 
             var lastInvoice = await _context.Invoices
-                .Where(i => i.Number.StartsWith(prefix))
+                .Where(i => i.Number.StartsWith(prefix) && i.Company_Id == companyId) // Filter by company
                 .OrderByDescending(i => i.Number)
                 .AsNoTracking()
                 .FirstOrDefaultAsync();
@@ -145,11 +149,11 @@ namespace MyInvoiceApp_API.Services.Implementation
             return $"{prefix}{nextNumber:D3}";
         }
 
-        public async Task<List<InvoiceSummaryVM>> GetInvoiceSummaryAsync()
+        public async Task<List<InvoiceSummaryVM>> GetInvoiceSummaryAsync(Guid companyId)
         {
             var invoices = await _context.Invoices
                 .Include(i => i.Items)
-                .Where(i => i.Issue_Date.HasValue)
+                .Where(i => i.Issue_Date.HasValue && i.Company_Id == companyId) // Filter by company
                 .AsNoTracking()
                 .ToListAsync();
 

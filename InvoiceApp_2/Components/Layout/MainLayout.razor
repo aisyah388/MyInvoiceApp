@@ -1,38 +1,43 @@
 ﻿@inherits LayoutComponentBase
+@using MyInvoiceApp.Auth
+@using System.Security.Claims
+@inject NavigationManager Navigation
+@inject CustomAuthStateProvider AuthStateProvider
 
-<MudThemeProvider Theme="MyCustomTheme"/>
+<MudThemeProvider Theme="MyCustomTheme" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
-
 <MudLayout>
     <MudAppBar Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <MudText Typo="Typo.h5" Class="ml-3">e-Invoice</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@(() => _drawerOpen = !_drawerOpen)" />
+        <MudText Typo="Typo.h5">Invoice Management</MudText>
         <MudSpacer />
-        <MudIconButton Icon="@Icons.Material.Filled.MoreVert" Color="Color.Inherit" Edge="Edge.End" />
+        <AuthorizeView>
+            <Authorized>
+                <MudStack Spacing="0" Class="mr-4">
+                    <MudText Typo="Typo.body2">Welcome, @context.User.Identity?.Name</MudText>
+                    <MudText Typo="Typo.caption">@GetCompanyName(context.User)</MudText>
+                </MudStack>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" OnClick="Logout">Logout</MudButton>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Text" Color="Color.Inherit" Href="/">Login</MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
     </MudAppBar>
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Docked" Elevation="2">
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
         <NavMenu />
     </MudDrawer>
-    <MudMainContent Class="custom-main-padding">
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
             @Body
+        </MudContainer>
     </MudMainContent>
 </MudLayout>
 
-<div id="blazor-error-ui">
-    An unhandled error has occurred.
-    <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
-</div>
-
 @code {
-    bool _drawerOpen = true;
-
-    void DrawerToggle()
-    {
-        _drawerOpen = !_drawerOpen;
-    }
+    private bool _drawerOpen = true;
 
     MudTheme MyCustomTheme = new MudTheme()
         {
@@ -45,4 +50,15 @@
                 }
             },
         };
+
+    private string GetCompanyName(System.Security.Claims.ClaimsPrincipal user)
+    {
+        return user.FindFirst("companyName")?.Value ?? string.Empty;
+    }
+
+    private async Task Logout()
+    {
+        await AuthStateProvider.MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/", true);
+    }
 }

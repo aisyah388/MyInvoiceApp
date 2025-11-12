@@ -1,0 +1,107 @@
+﻿@page "/user/register"
+@layout Layout.AuthLayout
+@using MyInvoiceApp_Shared.Model
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-8">
+    <MudPaper Elevation="3" Class="pa-8">
+        <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true">
+            Company Registration
+        </MudText>
+
+        @if (validationErrors.Any())
+        {
+            <MudAlert Severity="Severity.Error" Class="my-4">
+                @foreach (var error in validationErrors)
+                {
+                    <MudText Typo="Typo.body2">• @error</MudText>
+                }
+            </MudAlert>
+        }
+
+        <EditForm Model="@registerModel" OnValidSubmit="HandleRegister">
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="registerModel.Name" Label="Your Name" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="registerModel.Email" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="registerModel.CompanyName" Label="Company Name" Variant="Variant.Outlined" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudNumericField @bind-Value="registerModel.SSM_No" Label="SSM Number (12 digits)" Variant="Variant.Outlined" HideSpinButtons="true" T="long" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="registerModel.Password" Label="Password" Variant="Variant.Outlined" InputType="InputType.Password" />
+                </MudItem>
+
+                <MudItem xs="12" md="6">
+                    <MudTextField @bind-Value="registerModel.ConfirmPassword" Label="Confirm Password" Variant="Variant.Outlined" InputType="InputType.Password" />
+                </MudItem>
+
+                <MudItem xs="12" Class="d-flex justify-center mt-4">
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" Disabled="isLoading">
+                        @if (isLoading)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+                        }
+                        else
+                        {
+                            <span>Register</span>
+                        }
+                    </MudButton>
+                </MudItem>
+
+                <MudItem xs="12">
+                    <MudText Align="Align.Center">
+                        Already have an account?
+                        <MudLink Href="/" Color="Color.Primary">Login here</MudLink>
+                    </MudText>
+                </MudItem>
+            </MudGrid>
+        </EditForm>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private Register registerModel = new();
+    private List<string> validationErrors = new();
+    private bool isLoading = false;
+
+    private async Task HandleRegister()
+    {
+        validationErrors.Clear();
+        isLoading = true;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/register", registerModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Snackbar.Add("Registration successful! Please login.", Severity.Success);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                validationErrors.Add("Registration failed. Please check your input.");
+            }
+        }
+        catch (Exception)
+        {
+            validationErrors.Add("An error occurred.");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

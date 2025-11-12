@@ -3,11 +3,14 @@ using MyInvoiceApp.Shared.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using MyInvoiceApp.Shared.Model;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace MyInvoiceApp_API.Controller
 {
     [ApiController]
     [Route("api/client")]
+    [Authorize] // ✅ Protect routes
     public class ClientController : ControllerBase
     {
         private readonly IClientService _clientService;
@@ -17,11 +20,22 @@ namespace MyInvoiceApp_API.Controller
             _clientService = clientService;
         }
 
+        // Helper method to extract companyId from JWT claims
+        private Guid GetCompanyIdFromUser()
+        {
+            var companyIdClaim = User.FindFirst("CompanyId")?.Value;
+            if (string.IsNullOrEmpty(companyIdClaim))
+                throw new UnauthorizedAccessException("CompanyId claim missing in token.");
+
+            return Guid.Parse(companyIdClaim);
+        }
+
         [HttpGet("all-clients")]
         [ProducesResponseType(typeof(List<ClientVM>), StatusCodes.Status200OK)]
         public async Task<ActionResult<List<ClientVM>>> GetAllClients()
         {
-            var clients = await _clientService.GetAllClientsAsync();
+            var companyId = GetCompanyIdFromUser();
+            var clients = await _clientService.GetAllClientsAsync(companyId);
             return Ok(clients);
         }
 
@@ -30,12 +44,11 @@ namespace MyInvoiceApp_API.Controller
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClientVM>> GetClientById(Guid id)
         {
-            var client = await _clientService.GetClientByIdAsync(id);
+            var companyId = GetCompanyIdFromUser();
+            var client = await _clientService.GetClientByIdAsync(id, companyId);
 
             if (client == null)
-            {
-                return NotFound(new { message = $"Client with ID {id} not found." });
-            }
+                return NotFound(new { message = $"Client with ID {id} not found for this company." });
 
             return Ok(client);
         }
@@ -45,13 +58,15 @@ namespace MyInvoiceApp_API.Controller
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<Client>> CreateClient([FromBody] Client client)
         {
+            var companyId = GetCompanyIdFromUser();
+
             try
             {
-                var createdInvoice = await _clientService.CreateClientAsync(client);
+                var createdClient = await _clientService.CreateClientAsync(client, companyId);
                 return CreatedAtAction(
                     nameof(GetClientById),
-                    new { id = createdInvoice.Id },
-                    createdInvoice
+                    new { id = createdClient.Id },
+                    createdClient
                 );
             }
             catch (ValidationException ex)
@@ -72,12 +87,14 @@ namespace MyInvoiceApp_API.Controller
         [ProducesResponseType(typeof(Client), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Client>> UpdateInvoice(Guid id, [FromBody] Client client)
+        public async Task<ActionResult<Client>> UpdateClient(Guid id, [FromBody] Client client)
         {
+            var companyId = GetCompanyIdFromUser();
+
             try
             {
-                var updatedInvoice = await _clientService.UpdateClientAsync(id, client);
-                return Ok(updatedInvoice);
+                var updatedClient = await _clientService.UpdateClientAsync(id, client, companyId);
+                return Ok(updatedClient);
             }
             catch (KeyNotFoundException ex)
             {
@@ -102,12 +119,11 @@ namespace MyInvoiceApp_API.Controller
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteClient(Guid id)
         {
-            var deleted = await _clientService.DeleteClientAsync(id);
+            var companyId = GetCompanyIdFromUser();
+            var deleted = await _clientService.DeleteClientAsync(id, companyId);
 
             if (!deleted)
-            {
-                return NotFound(new { message = $"Client not found." });
-            }
+                return NotFound(new { message = $"Client not found for this company." });
 
             return NoContent();
         }
