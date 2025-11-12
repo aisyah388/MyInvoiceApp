@@ -15,7 +15,7 @@ namespace MyInvoiceApp_Shared.Model
         public string? Address { get; set; }
         public string? Phone { get; set; }
         public string? Email { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
         public virtual ICollection<User>? Users { get; set; }
         public virtual ICollection<Client>? Clients { get; set; } 

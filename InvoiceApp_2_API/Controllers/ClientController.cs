@@ -10,7 +10,7 @@ namespace MyInvoiceApp_API.Controller
 {
     [ApiController]
     [Route("api/client")]
-    [Authorize] // ✅ Protect routes
+    [Authorize]
     public class ClientController : ControllerBase
     {
         private readonly IClientService _clientService;

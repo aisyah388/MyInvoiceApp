@@ -8,7 +8,7 @@ using System.Security.Claims;
 
 namespace MyInvoiceApp_API.Controller
 {
-    [Authorize] // Add authorization to entire controller
+    [Authorize]
     [ApiController]
     [Route("api/invoice")]
     public class InvoiceController : ControllerBase

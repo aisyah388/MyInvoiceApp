@@ -19,7 +19,6 @@ namespace MyInvoiceApp_API.Services.Implementation
             _validator = validator;
         }
 
-        // ✅ Filter by company
         public async Task<List<ClientVM>> GetAllClientsAsync(Guid companyId)
         {
             return await _context.Clients
@@ -38,7 +37,6 @@ namespace MyInvoiceApp_API.Services.Implementation
                 .ToListAsync();
         }
 
-        // ✅ Filter by company
         public async Task<ClientVM?> GetClientByIdAsync(Guid id, Guid companyId)
         {
             var client = await _context.Clients
@@ -60,7 +58,6 @@ namespace MyInvoiceApp_API.Services.Implementation
             };
         }
 
-        // ✅ Assign company on creation
         public async Task<Client> CreateClientAsync(Client client, Guid companyId)
         {
             // Validate using FluentValidation
@@ -77,7 +74,6 @@ namespace MyInvoiceApp_API.Services.Implementation
             return client;
         }
 
-        // ✅ Update with company validation
         public async Task<Client> UpdateClientAsync(Guid id, Client client, Guid companyId)
         {
             var existingClient = await _context.Clients
@@ -100,7 +96,6 @@ namespace MyInvoiceApp_API.Services.Implementation
             return existingClient;
         }
 
-        // ✅ Delete with company validation
         public async Task<bool> DeleteClientAsync(Guid id, Guid companyId)
         {
             var client = await _context.Clients
